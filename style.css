@@ -57,3 +57,18 @@ code {
 li {
 	margin-bottom: 10px;
 }
+
+.memory {
+	margin: auto;
+	border-collapse: collapse;
+}
+
+.memory td {
+	padding: 10px 0;
+	width: 70px;
+	text-align: center;
+}
+
+.memory tr:nth-child(2) td {
+	border: 1px solid #ccc;
+}

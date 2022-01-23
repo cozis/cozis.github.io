@@ -159,9 +159,43 @@ struct in_addr {
     unsigned long s_addr;
 };</textarea>
 
-		<p>Il campo <code>sin_family</code> deve sempre mantenere il valore <code>AF_INET</code>, il campo <code>sin_port</code> mantiene il valore della nostra porta (un numero compreso fra 0 e 2^16-1 = 65535) ed infine <code>sin_addr</code> contiene il nostro indirizzo (un numero compreso fra 0 e 2^32-1).</p>
+		<p>Il campo <code>sin_family</code> deve sempre mantenere il valore <code>AF_INET</code>, il campo <code>sin_port</code> mantiene il valore della nostra porta (un numero compreso fra 0 e 2^16-1 = 65535) ed infine <code>sin_addr</code> contiene il nostro indirizzo (un numero compreso fra 0 e 2^32-1). Il campo <code>sin_zero</code> non ci interessa e ci limitiamo a riempirlo di zeri.</p>
 
-		<p>C'è solo un ultimo dettaglio!</p>
+		<p>C'è solo un ultimo dettaglio da chiarire prima di poter fare il binding. I valori di porta ed indirizzo non possiamo assegnarli come se niente fosse. Esiste una cosa chiamata <code>network byte ordering</code>, che è legata al modo in cui la CPU ordina i byte in memoria (<i>little endian</i> e <i>big endian</i>). Supponiamo di avere un intero binario rappresentato in 4 byte (32 bit) N = A B C D, (dove A,B,C,D sono 4 possibili configurazioni di byte) e di volerlo salvare in memoria ad un indirizzo P. Un computer <i>little endian</i> salva N come</p>
+
+		<table class="memory">
+			<tr>
+				<td>P</td>
+				<td>P+1</td>
+				<td>P+2</td>
+				<td>P+3</td>
+			</tr>
+			<tr>
+				<td>D</td>
+				<td>C</td>
+				<td>B</td>
+				<td>A</td>
+			</tr>
+		</table>
+
+		<p>mentre un computer <i>big endian</i> lo salva come</p>
+
+		<table class="memory">
+			<tr>
+				<td>P</td>
+				<td>P+1</td>
+				<td>P+2</td>
+				<td>P+3</td>
+			</tr>
+			<tr>
+				<td>A</td>
+				<td>B</td>
+				<td>C</td>
+				<td>D</td>
+			</tr>
+		</table>
+
+		<p>Se un computer <i>big endian</i> ed uno <i>little endian</i> comunicano con un socket senza compensare per questa incompatibilità, allora inviando dati più grandi di un byte ci saranno corruzioni dei dati dovuti al fatto che uno dei computer invierà un valore N = ABCD e l'altro lo leggerà come N = DCBA. Per risolvere questo problema si fissa come convenzione l'ordinamento di byte della rete e tutti i computer che vi partecipano devono adattarsi. Questo convenzione è detta <i>network byte order</i>. <b>Il protocollo TCP definisce l'ordinamento byte della rete come <i>big endian</i></b>.</p>
 
 		<h2>Fonti</h2>
 		<ul>
@@ -169,6 +203,7 @@ struct in_addr {
 			<li><a href="https://man7.org/linux/man-pages/man2/bind.2.html">https://man7.org/linux/man-pages/man2/bind.2.html</a></li>
 			<li><a href="https://www.ibm.com/docs/en/zos/2.2.0?topic=functions-bind-bind-name-socket">https://www.ibm.com/docs/en/zos/2.2.0?topic=functions-bind-bind-name-socket</a></li>
 			<li><a href="https://www.gta.ufrj.br/ensino/eel878/sockets/sockaddr_inman.html">https://www.gta.ufrj.br/ensino/eel878/sockets/sockaddr_inman.html</a></li>
+			<li><a href="https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order">https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order</a></li>
 		</ul>
 		---------------------
 		Potrebbero anche interessarti:
