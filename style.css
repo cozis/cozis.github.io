@@ -1,0 +1,59 @@
+body {
+	max-width: 900px;
+	margin: auto;
+	padding: 30px;
+}
+
+a, p, h1, h2, h3, code, li {
+	font-family: Georgia, serif;
+}
+
+h1 {
+	font-size: 34px;
+}
+
+h2 {
+	font-size: 26px;
+	margin-top: 50px;
+}
+
+h3 {
+	font-size: 20px;
+	margin-top: 40px;
+}
+
+code, a, p, li, textarea {
+	font-size: 20px;
+}
+
+p {
+	line-height: 160%;
+  	text-align: justify;
+  	text-justify: inter-word;
+}
+
+textarea[disabled] {
+	word-break: break-all;
+	width: 100%;
+	padding: 20px;
+	resize: none;
+    overflow: hidden;
+    color: #ccc;
+    border: 0;
+    border-radius: 5px;
+    background: #333;
+    -moz-tab-size : 4;
+      -o-tab-size : 4;
+         tab-size : 4;
+
+}
+
+code {
+	padding: 2px;
+	background: #ddd;
+	border-radius: 4px;
+}
+
+li {
+	margin-bottom: 10px;
+}
