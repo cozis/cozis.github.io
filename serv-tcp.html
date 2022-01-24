@@ -159,7 +159,7 @@ struct in_addr {
     unsigned long s_addr;
 };</textarea>
 
-		<p>Il campo <code>sin_family</code> deve sempre mantenere il valore <code>AF_INET</code>, il campo <code>sin_port</code> mantiene il valore della nostra porta (un numero compreso fra 0 e 2^16-1 = 65535) ed infine <code>sin_addr</code> contiene il nostro indirizzo (un numero compreso fra 0 e 2^32-1). Il campo <code>sin_zero</code> non ci interessa e ci limitiamo a riempirlo di zeri.</p>
+		<p>Il campo <code>sin_family</code> deve sempre mantenere il valore <code>AF_INET</code>, il campo <code>sin_port</code> mantiene il valore della nostra porta (un numero compreso fra 0 e 2^16-1 = 65535) ed infine <code>sin_addr</code> contiene il nostro indirizzo (un numero compreso fra 0 e 2^32-1). Il campo <code>sin_zero</code> non ci interessa e ci limitiamo a riempirlo di zeri. Il valore di bind è negativo se ha fallito ed è 0 quanto ha funzionato.</p>
 
 		<p>C'è solo un ultimo dettaglio da chiarire prima di poter fare il binding. I valori di porta ed indirizzo non possiamo assegnarli come se niente fosse. Esiste una cosa chiamata <code>network byte ordering</code>, che è legata al modo in cui la CPU ordina i byte in memoria (<i>little endian</i> e <i>big endian</i>). Supponiamo di avere un intero binario rappresentato in 4 byte (32 bit) N = A B C D, (dove A,B,C,D sono 4 possibili configurazioni di byte) e di volerlo salvare in memoria ad un indirizzo P. Un computer <i>little endian</i> salva N come</p>
 
@@ -197,12 +197,70 @@ struct in_addr {
 
 		<p>Se un computer <i>big endian</i> ed uno <i>little endian</i> comunicano con un socket senza compensare per questa incompatibilità, allora inviando dati più grandi di un byte ci saranno corruzioni dei dati dovuti al fatto che uno dei computer invierà un valore N = ABCD e l'altro lo leggerà come N = DCBA. Per risolvere questo problema si fissa come convenzione l'ordinamento di byte della rete e tutti i computer che vi partecipano devono adattarsi. Questo convenzione è detta <i>network byte order</i>. <b>Il protocollo TCP definisce l'ordinamento byte della rete come <i>big endian</i></b>.</p>
 
+		<p>I campi della porta <code>sin_port</code> e indirizzo <code>sin_addr</code> devono essere espressi rispetto all'ordinamento di byte della rete, non quello locale. Per assicurarci che i valori che forniamo siano codificati nel modo giusto usiamo le funzioni</p>
+
+		<textarea disabled>
+#include <arpa/inet.h>
+
+uint16_t htons(uint16_t hostshort);
+uint32_t htonl(uint32_t hostlong);</textarea>
+		
+		<p>Se queste funzioni sono eseguite su sistemi little endian, allora convertono gli argomenti a big endian. Se sono eseguite su sistemi big endian, allora ritornano l'argomento invariato. In realtà, come vedremo a breve, faremo uso solo di <code>htons</code>, dato che non avremo bisogno di specificare esplicitamente l'indirizzo.</p>
+
+		<p>Invece di specificare l'indirizzo, usiamo il valore <code>INADDR_ANY</code> (definito in <code><font color="red">???</font></code>). Questo valore comunica al sistema operativo che siamo interessati ad eseguire un binding del socket su ogni possibile interfaccia di rete disponibile (cioè ogni possibile indirizzo). FINALMENTE possiamo fare questo benedetto bind!!!!</p>
+
+		<p>Il codice quindi diventa:</p>
+
+				<textarea disabled>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
+int main()
+{
+	// Apriamo il socket.
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(fd < 0)
+		{
+			fprintf(stderr, "La creazione del socket è fallita!\n");
+			return -1;
+		}
+
+	int port = 8080;
+
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(struct sockaddr_in));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = INADDR_ANY;
+
+	if(bind(fd, (struct sockaddr*) &addr, sizeof(struct sockaddr_in)))
+		{
+			fprintf(stderr, "Il binding è fallito..\n");
+
+			close(fd);
+			return -1;
+		}
+
+	// ..facciamo cose col socket..
+
+	// Ed ora lo chiudiamo.
+	close(fd);
+
+	return 0;
+}</textarea>
+		
+		<font color="red">Perchè la porta 8080?? Posso scegliere anche io una porta?? Quali porte posso scegliere?</font>
+		<p>Ci siamo quasi!!!</p>
+
 		<h2>Fonti</h2>
 		<ul>
 			<li><a href="https://man7.org/linux/man-pages/man2/socket.2.html">https://man7.org/linux/man-pages/man2/socket.2.html</a></li>
 			<li><a href="https://man7.org/linux/man-pages/man2/bind.2.html">https://man7.org/linux/man-pages/man2/bind.2.html</a></li>
 			<li><a href="https://www.ibm.com/docs/en/zos/2.2.0?topic=functions-bind-bind-name-socket">https://www.ibm.com/docs/en/zos/2.2.0?topic=functions-bind-bind-name-socket</a></li>
 			<li><a href="https://www.gta.ufrj.br/ensino/eel878/sockets/sockaddr_inman.html">https://www.gta.ufrj.br/ensino/eel878/sockets/sockaddr_inman.html</a></li>
+			<li><a href="https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order">https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order</a></li>
+			<li><a href="https://linux.die.net/man/3/htons">https://linux.die.net/man/3/htons</a></li>
 			<li><a href="https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order">https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order</a></li>
 		</ul>
 		---------------------
