@@ -7,14 +7,22 @@
 		<a href="index.html">Indice</a>
 
 		<h1>1. Scriviamo un server TCP in C!</h1>
-		<p>In questa guida intendo mostrare come si può creare un server TCP in C su Linux. Questa guida spallidisce al confronto con altre che sono reperibili su internet, ma per completezza, relativamente ad altre guide di questo blog (come quelle sui web server), ho deciso di scriverla comunque. Anche perchè, nonostante la quantità di contenuti reperibili sia infinita, sono per lo più in inglese.</p>
+		<p>
+			In questa guida intendo mostrare come si può creare un server TCP in C su Linux. Questa guida spallidisce al confronto con altre che sono reperibili su internet, ma per completezza, relativamente ad altre guide di questo blog (come quelle sui web server), ho deciso di scriverla comunque. Anche perchè, nonostante la quantità di contenuti reperibili sia infinita, sono per lo più in inglese.
+		</p>
 
-		<p>I requisiti necessari per seguire questa guida sono:</p>
+		<p>
+			I requisiti necessari per seguire questa guida sono:
+		</p>
+		
 		<ul>
 			<li>Un po' di esperienza con il linguaggio C.</li>
 			<li>Un sistema Linux.</li>
 		</ul>
-		<p>Ciascuno degli elementi di questa lista può essere sostituito con un'adeguata dose di buona volontà, se necessario!</p>
+		
+		<p>
+			Ciascuno degli elementi di questa lista può essere sostituito con un'adeguata dose di buona volontà, se necessario!
+		</p>
 
 		<h2>Sommario</h2>
 		<ol>
@@ -23,11 +31,16 @@
 			<ol>
 				<li>Cos'è un server? Cos'è TCP? Cos'è un server TCP?!</li>
 			</ol>
-			<li>Programmiamoo</li>
+			<li>Programmiamo!</li>
 			<ol>
 				<li>I socket</li>
 				<li>Il binding</li>
+				<li>Listening</li>
+				<li><code>accept</code>, <code>send</code> e <code>recv</code></li>
+				<li>Un esempio di business logic.</li>
 			</ol>
+			<li>Fonti</li>
+			<li>Contenuti correlati</li>
 		</ol>
 
 		<h2>2. Teoria!</h2>
@@ -38,7 +51,13 @@
 
 		<p>Per far avvenire questa comunicazione, i computer devono essere collegati fisicamente con dei cavi. Una volta collegati, a ciascun computer è associato un identificativo univoco (noto come indirizzo IP) che può essere usato per contattarlo. A questo punto è necessario fare un'ulteriore considerazione. In effetti, quando diciamo che due computer stanno comunicando, in realtà sono due programmi su questi computer che stanno comunicando. Ma su un computer possono girare più di un programma, quindi un identificativo all'intero computer non basta. È necessario introdurre un identificativo aggiuntivo per i vari programmi all'interno di ciascun computer che ha a sua volta un identificativo. L'identificativo del programma è detto porta, mentre quello del computer è detto indirizzo. Un programma, per avviare la comunicazione con un programma remoto, deve conoscere la coppia (indirizzo, porta) di quest'ultimo. Usualmente per spiegare quest'idea si usa la metafora secondo la quale la rete internet è una città, dove ciascun palazzo è un computer ed ogni camera del palazzo è un programma. Per andare da casa nostra a quella di un nostro amico, abbiamo bisogno di indirizzo e numero di porta.</p>
 
-		<font color="red">Come è fatto un indirizzo? Ed una porta? E cosa sono le "reti" in generale?</font>
+		<p>
+			<font color="red">Come è fatto un indirizzo? Ed una porta? E cosa sono le "reti" in generale?</font>
+		</p>
+
+		<p>
+			<font color="red">Cosa sono gli IPv4 ed IPv6?</font>
+		</p>
 
 		<p>Il TCP è uno dei protocolli che permette la comunicazione di questi byte. Questa è una descrizione molto astratta, ma per fortuna ci basta sapere questo dato che il sistema operativo si occupa dei dettagli per noi. Esistono altri protocolli, come ad esempio l'UDP, ma al momento non ci interessano.</p>
 
@@ -123,7 +142,7 @@ int main()
 }</textarea>
 
 		<p>
-			NOTA: Spesso si usa <code>fd</code> come nome della variabile del socket (in generale degli identificativi relativi a strutture dati interne al kernel di Linux) perchè sta per <i>File Descriptor</i>. In Linux, ogni cosa è vista come un file dal quale si può leggere e scrivere, anche i socket.
+			<b>NOTA</b>: Spesso si usa <code>fd</code> come nome della variabile del socket (in generale degli identificativi relativi a strutture dati interne al kernel di Linux) perchè sta per <i>File Descriptor</i>. In Linux, ogni cosa è vista come un file dal quale si può leggere e scrivere, anche i socket.
 		</p>
 
 		<h3>3.2. Il binding</h3>
@@ -249,7 +268,9 @@ int main()
 
 	return 0;
 }</textarea>
-		<font color="red">Perchè la porta 8080?? Posso scegliere anche io una porta?? Quali porte posso scegliere?</font>
+		<p>
+			<font color="red">Perchè la porta 8080?? Posso scegliere anche io una porta?? Quali porte posso scegliere?</font>
+		</p>
 		<p>Ci siamo quasi!!!</p>
 
 		<h3>3.3. Listening</h3>
@@ -261,7 +282,7 @@ int main()
 
 int listen(int sockfd, int backlog);</textarea>
 		
-		<p>Il valore di <code>sockfd</code> è il descrittore che ci ha dato la prima chiamata a <code>socket</code>, mentre il secondo comunica la dimensione della <a href="https://it.wikipedia.org/wiki/Coda_(informatica)">coda</a> di connessioni non ancora accettate. Ad esempio, se fissiamo <code>backlog</code> a 5 ed arrivano 6 richieste prima che ne accettiamo qualcuna, allora la 6 è rifiutata. Un numero compreso fra 5 e 128 dovrebbe andar bene. Se la funziona ha un esito positivo, il valore zero è ritornato, altrimenti ritorna un intero negativo.</p>
+		<p>Il valore di <code>sockfd</code> è il descrittore che ci ha dato la prima chiamata a <code>socket</code>, mentre il secondo comunica la dimensione della <a href="https://it.wikipedia.org/wiki/Coda_(informatica)" target="_blank">coda</a> di connessioni non ancora accettate. Ad esempio, se fissiamo <code>backlog</code> a 5 ed arrivano 6 richieste prima che ne accettiamo qualcuna, allora la 6 è rifiutata. Un numero compreso fra 1 e 128 dovrebbe andar bene. Se la funziona ha un esito positivo, il valore zero è ritornato, altrimenti ritorna un intero negativo.</p>
 
 		<textarea disabled>
 #include <sys/socket.h>
@@ -313,7 +334,7 @@ int main()
 
 		<h3>3.4. <code>accept</code>, <code>send</code> e <code>recv</code>.</h3>
 
-		<p>Ormai abbiamo quasi fatto! Siamo quasi riusciti a completare questa titanica impresa. A questo punto la nostra applicazione sta ascoltando per le nuove richieste, che si accumulano sulla <a href="https://it.wikipedia.org/wiki/Coda_(informatica)">coda</a> del socket. La nostra applicazione deve accettarle e gestirle. Come abbiamo accennato <a href="#pseudo-codice-server-tcp">all'inizio</a>, a questo punto il nostro server deve cominciare un ciclo di accettazione-lettura della richiesta-invio della risposta. Le funzioni che ci permettono di farlo sono, rispettivamente, <code>accept</code>, <code>send</code> e <code>recv</code>.</p>
+		<p>Ormai abbiamo quasi fatto! Siamo quasi riusciti a completare questa titanica impresa. A questo punto la nostra applicazione sta ascoltando per le nuove richieste, che si accumulano sulla <a href="https://it.wikipedia.org/wiki/Coda_(informatica)" target="_blank">coda</a> del socket. La nostra applicazione deve accettarle e gestirle. Come abbiamo accennato <a href="#pseudo-codice-server-tcp" target="_blank">all'inizio</a>, a questo punto il nostro server deve cominciare un ciclo di accettazione-lettura della richiesta-invio della risposta. Le funzioni che ci permettono di farlo sono, rispettivamente, <code>accept</code>, <code>send</code> e <code>recv</code>.</p>
 
 		<p>La funzione <code>accept</code>, legge dalla coda associata al socket una connessione e la ritorna nella forma di un nuovo socket. Questo nuovo socket lo useremo per leggere e scrivere byte da e verso il client. Quando la comunicazione è conclusa, dobbiamo chiamare <code>close</code> su questo socket. Poi, se ci interessa, possiamo accettare una nuova connessione dal socket iniziale. Questa funzione è definita come:</p>
 
@@ -447,15 +468,23 @@ int main()
 
 	return 0;
 }</textarea>
-		<p>Il server, per quel che ci interessa, è concluso. Ora quel che manca è definire la funzione <code>make_response</code> che implementa l'effettiva logica del software.</p>
+		<p>
+			Il server, per quel che ci interessa, è concluso. Ora quel che manca è definire la funzione <code>make_response</code> che implementa l'effettiva logica del software.
+		</p>
 
-		<p>NOTA: Questo server non terminerà mai naturalmente perchè non uscità mai da quel loop. Questo significa che, in effetti, la chiamata <code>close</code> finale è superflua dato che non verrà mai eseguita. Questo però non è un problema dato che il sistema operativo chiude tutti i socket per noi quando il programma termina.<p>
+		<p>
+			<b>NOTA</b>: Questo server non terminerà mai naturalmente perchè non uscità mai da quel loop. Questo significa che, in effetti, la chiamata <code>close</code> finale è superflua dato che non verrà mai eseguita. Questo però non è un problema dato che il sistema operativo chiude tutti i socket per noi quando il programma termina.
+		<p>
 
 		<h3>3.5. Un esempio di business logic.</h3>
 
 		<p>Per completezza, vediamo una possibile implementazione di <code>make_response</code>. Immaginiamo di fare un sistema in cui il client produce una stringa ed il server deve trasformare tutti i caratteri nella loro versione maiuscola (se c'è), per poi inviarla indietro al client. Questo server però, accetterà solo caratteri ASCII (quindi caratteri codificati con valori compresi tra 0 e 127). Se la stringa contiene caratteri non ASCII, il server prefisserà "X" alla risposta seguita da uno spazio ed un messaggio di errore. Se invece la stringa contiene solo ASCII, il server prefisserà "O" seguito da uno spazio.</p>
 
 		<textarea disabled>
+#include <ctype.h>
+#include <stdio.h>
+#include <assert.h>
+
 int make_response(char *request, int request_size, char *response, int response_max_size)
 {
 	// Iteriamo lungo la richieste e, se troviamo caratteri che non 
@@ -508,6 +537,173 @@ int make_response(char *request, int request_size, char *response, int response_
 	return response_size;
 }</textarea>
 
+		<p>Finalmente, ecco il nostro server TCP</p>
+
+		<textarea disabled>
+#include <ctype.h>
+#include <stdio.h>
+#include <assert.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
+int make_response(char *request, int request_size, char *response, int response_max_size)
+{
+	// Iteriamo lungo la richieste e, se troviamo caratteri che non 
+	// sono ASCII, come risposta mangiamo un messaggio di errore.
+
+	for(int i = 0; i < request_size; i += 1)
+		{
+			if((unsigned char) request[i] > 127)
+				{
+					int n = snprintf(response, "X Il carattere %d non è ASCII!", i);
+					assert(n >= 0);
+
+					if(n > response_max_size)
+						n = response_max_size;
+
+					return n;
+				}
+		}
+
+	// Se l'esecuzione del programma arriva qui, allora la richiesta
+	// è ASCII. Assumiamo che il buffer di risposta sia almeno grande
+	// due byte, in modo da poter scrivere il "O " iniziale senza
+	// dover controllare di non andare oltre la fine del buffer.
+
+	assert(response_max_size > 1);
+
+	response[0] = 'O';
+	response[1] = ' ';
+
+	// Ora copiamo nel buffer di uscita i valori del buffer di entrata
+	// convertendoli opportunamente. Se il buffer di uscita non è abbastanza
+	// grande da ospitare l'intero messaggio, tronchiamo il messaggio
+	// di uscita senza farci troppi problemi.
+
+	for(int i = 0; i < request_size && i+2 < response_max_size; i += 1)
+		{
+			if(islower(request[i]))
+				response[i+2] = toupper(request[i]);
+			else
+				response[i+2] = request[i];
+		}
+
+	int response_size;
+
+	if(request_size + 2 > response_max_size)
+		response_size = response_max_size;
+	else
+		response_size = request_size + 2;
+
+	return response_size;
+}
+
+int main()
+{
+	// Apriamo il socket.
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(fd < 0)
+		{
+			fprintf(stderr, "La creazione del socket è fallita!\n");
+			return -1;
+		}
+
+	int port = 8080;
+
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(struct sockaddr_in));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = INADDR_ANY;
+
+	if(bind(fd, (struct sockaddr*) &addr, sizeof(struct sockaddr_in)))
+		{
+			fprintf(stderr, "Il binding è fallito..\n");
+
+			close(fd);
+			return -1;
+		}
+
+	if(listen(fd, 32))
+		{
+			fprintf(stderr, "Non sono riuscito ad ascoltaree\n");
+
+			close(fd);
+			return -1;
+		}
+
+	while(1)
+		{
+			// Accetta una connessione.
+
+			struct sockaddr_in client_addr;
+			socklen_t          client_addr_size = sizeof(client_addr);
+			int conn_fd = accept(fd, (struct sockaddr*) &client_addr, &client_addr_size);
+
+			if(conn_fd < 0)
+				{
+					// Per qualche motivo la chiamata ad [accept] è fallita.
+					// Saltiamo il resto del loop e torniamo dinuovo su [accept].
+					continue;
+				}
+
+			char request[512], response[512];
+
+			// Ricevi la richiesta.
+
+			ssize_t request_size = recv(conn_fd, request, sizeof(request), 0);
+
+			if(request_size <= 0)
+				{
+					// La lettura ha fallito oppure il client si è disconnesso.
+					// In ogni caso chiudiamo il socket ed accettiamo una nuova
+					// connessione.
+					close(conn_fd);
+					continue;
+				}
+
+			// Data la richiesta, genera la rispettiva risposta.
+			int response_size = make_response(request, request_size, response, sizeof(response));
+
+			// Ora invia la risposta.
+
+			ssize_t sent_bytes = 0;
+			do
+				{
+
+					ssize_t temp = send(conn_fd, response, response_size, 0);
+
+					if(temp < 0)
+						{
+							// Non sono riuscito ad inviare i byte. Chiudo
+							// la connessione e ne accetto un'altra.
+							close(conn_fd);
+							continue;
+						}
+
+					sent_bytes += temp;
+				}
+			while(sent_bytes < response_size);
+
+			// Chiudi la connessione e torna ad accettarne una nuova.
+			close(conn_fd);
+		}
+
+	// Ed ora lo chiudiamo.
+	close(fd);
+
+	return 0;
+}</textarea>
+		
+		<p>
+			<font color="red">Ed il client??</font>
+		</p>
+
+		<p>
+			<font color="red">Come si può estendere per supportare l'IPv6??</font>
+		</p>
+
 		<h2>Fonti</h2>
 		<ul>
 			<li><a href="https://man7.org/linux/man-pages/man2/socket.2.html">https://man7.org/linux/man-pages/man2/socket.2.html</a></li>
@@ -522,11 +718,14 @@ int make_response(char *request, int request_size, char *response, int response_
 			<li><a href="https://man7.org/linux/man-pages/man2/recv.2.html">https://man7.org/linux/man-pages/man2/recv.2.html</a></li>
 			<li><a href="https://man7.org/linux/man-pages/man2/send.2.html">https://man7.org/linux/man-pages/man2/send.2.html</a></li>
 		</ul>
-		---------------------
-		Potrebbero anche interessarti:
-		...
-		...
 
+		<h2>Contenuti correlati</h2>
+		<p>
+			Se ti è interessato questo articolo, potrebbero anche interessarti questi altri:
+		</p>
+		<ul>
+			<li><a href="">Server HTTP/0.9 in C!</a></li>
+		</ul>
 		<script src="scripts.js"></script>
 	</body>
 </html>

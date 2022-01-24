@@ -5,7 +5,17 @@ body {
 }
 
 a, p, h1, h2, h3, code, li {
-	font-family: Georgia, serif;
+	font-family: slabo;
+	/*Georgia, serif;*/
+}
+
+a {
+	color: #363d99;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
 }
 
 h1 {
@@ -49,10 +59,15 @@ textarea[disabled] {
 }
 
 code {
-	color: #333;
+	color: #222;
 	padding: 2px 5px;
-	background: #ddd;
+	/*background: #ddd;*/
+	background: #bdf79c;
 	border-radius: 4px;
+}
+
+code, textarea[disabled] {
+	font-family: inconsolata;
 }
 
 li {
