@@ -1,5 +1,5 @@
 body {
-	max-width: 900px;
+	max-width: 1200px;
 	margin: auto;
 	padding: 30px;
 }
@@ -49,7 +49,8 @@ textarea[disabled] {
 }
 
 code {
-	padding: 2px;
+	color: #333;
+	padding: 2px 5px;
 	background: #ddd;
 	border-radius: 4px;
 }

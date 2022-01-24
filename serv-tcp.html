@@ -44,7 +44,7 @@
 
 		<p>Quindi, finalmente, <b>un server TCP è un programma che ascolta su una determinata porta per connessioni TCP</b> di altri computer.</p>
 
-		<h2>3. Programmiamoo</h2>
+		<h2>3. Programmiamo!</h2>
 		
 		<p>
 			Un programma che implementa un server TCP deve fare le seguenti cose:
@@ -62,7 +62,7 @@
 			Quindi, in prima approssimazione, avremo una cosa del genere (in pseudo-codice):
 		</p>
 
-		<textarea disabled>
+		<textarea disabled id="pseudo-codice-server-tcp">
 socket = create_TCP_socket()
 
 set_address_and_port(socket, address, port)
@@ -249,9 +249,264 @@ int main()
 
 	return 0;
 }</textarea>
-		
 		<font color="red">Perchè la porta 8080?? Posso scegliere anche io una porta?? Quali porte posso scegliere?</font>
 		<p>Ci siamo quasi!!!</p>
+
+		<h3>3.3. Listening</h3>
+		
+		<p>A questo punto il socket è stato configurato, quindi possiamo cominciare ad ascolatare le connessioni. La funzione che ci permette di farlo è</p>	
+
+		<textarea disabled>
+#include <sys/socket.h>
+
+int listen(int sockfd, int backlog);</textarea>
+		
+		<p>Il valore di <code>sockfd</code> è il descrittore che ci ha dato la prima chiamata a <code>socket</code>, mentre il secondo comunica la dimensione della <a href="https://it.wikipedia.org/wiki/Coda_(informatica)">coda</a> di connessioni non ancora accettate. Ad esempio, se fissiamo <code>backlog</code> a 5 ed arrivano 6 richieste prima che ne accettiamo qualcuna, allora la 6 è rifiutata. Un numero compreso fra 5 e 128 dovrebbe andar bene. Se la funziona ha un esito positivo, il valore zero è ritornato, altrimenti ritorna un intero negativo.</p>
+
+		<textarea disabled>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
+int main()
+{
+	// Apriamo il socket.
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(fd < 0)
+		{
+			fprintf(stderr, "La creazione del socket è fallita!\n");
+			return -1;
+		}
+
+	int port = 8080;
+
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(struct sockaddr_in));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = INADDR_ANY;
+
+	if(bind(fd, (struct sockaddr*) &addr, sizeof(struct sockaddr_in)))
+		{
+			fprintf(stderr, "Il binding è fallito..\n");
+
+			close(fd);
+			return -1;
+		}
+
+	if(listen(fd, 32))
+		{
+			fprintf(stderr, "Non sono riuscito ad ascoltaree\n");
+
+			close(fd);
+			return -1;
+		}
+
+	// ..facciamo cose col socket..
+
+	// Ed ora lo chiudiamo.
+	close(fd);
+
+	return 0;
+}</textarea>
+		<p>Sta prendendo forma!</p>
+
+		<h3>3.4. <code>accept</code>, <code>send</code> e <code>recv</code>.</h3>
+
+		<p>Ormai abbiamo quasi fatto! Siamo quasi riusciti a completare questa titanica impresa. A questo punto la nostra applicazione sta ascoltando per le nuove richieste, che si accumulano sulla <a href="https://it.wikipedia.org/wiki/Coda_(informatica)">coda</a> del socket. La nostra applicazione deve accettarle e gestirle. Come abbiamo accennato <a href="#pseudo-codice-server-tcp">all'inizio</a>, a questo punto il nostro server deve cominciare un ciclo di accettazione-lettura della richiesta-invio della risposta. Le funzioni che ci permettono di farlo sono, rispettivamente, <code>accept</code>, <code>send</code> e <code>recv</code>.</p>
+
+		<p>La funzione <code>accept</code>, legge dalla coda associata al socket una connessione e la ritorna nella forma di un nuovo socket. Questo nuovo socket lo useremo per leggere e scrivere byte da e verso il client. Quando la comunicazione è conclusa, dobbiamo chiamare <code>close</code> su questo socket. Poi, se ci interessa, possiamo accettare una nuova connessione dal socket iniziale. Questa funzione è definita come:</p>
+
+		<textarea disabled>
+#include <sys/socket.h>
+
+int accept(int sockfd, struct sockaddr *restrict addr, socklen_t *restrict addrlen);</textarea>
+		
+		<p>Come sempre, <code>sockfd</code> è il descrittre sul quale abbiamo chiamato <code>listen</code>. I due argomenti <code>addr</code> e <code>addrlen</code> sono, rispettivamente, l'indirizzo di un buffer <code>struct sockaddr_in</code> dove questa funzione può darci l'indirizzo del client e il puntatore ad una variabile contenente la dimensione del buffer che contiene l'indirizzo (quindi una variabile che contiene il valore <code>sizeof(struct sockaddr_in)</code>). In caso di successo la funzion ritorna il descrittore del socket appena accettato, nel buffer riferito da <code>addr</code> viene inserito l'indirizzo del client e nella variabile riferita da <code>addrlen</code> quanti byte di <code>addr</code> sono stati usati (lo so, è un po' strano. Prentedela per quel che è!). In caso di errore invece la funzione ritorna un numero negativo.</p>
+
+		<p>Una volta ottenuto il socket relativo al client col quale vogliamo comunicare, possiamo ricevere ed inviare arbitrarie sequenze di byte. La funzione <code>recv</code></p>
+
+		<textarea disabled>
+#include <sys/socket.h>
+
+ssize_t recv(int sockfd, void *buf, size_t len, int flags);</textarea>
+	
+		<p>prende come argomenti il socket della connessione <code>sockfd</code>, il riferimento <code>buf</code> (e la dimensione <code>len</code>) di un buffer e copia i byte ricevuti nel buffer. È possibile che siano disponibili meno byte di quanto spazio ci sia nel buffer, in tal caso il buffer è parzialmente riempito. Per questo la funzione ritorna il numero di byte effettivamente scritti nel buffer. Se invece avviene un errore, un numero negativo è ritornato. È anche possibile che il client interrompa la connessione mentre il nostro server aspetta messaggi con <code>recv</code>. In tal caso viene ritornato il valore 0. L'argomento <code>flags</code> ci permette di configurare il modo in cui vogliamo avvenga la ricezione. A noi però non interessa, quindi specifichiamo un bello 0.</p>
+
+		<p>Analogamente, per inviare messaggi usiamo la funzione <code>send</code></p>
+
+		<textarea disabled>
+#include <sys/socket.h>
+
+ssize_t send(int sockfd, const void *buf, size_t len, int flags);</textarea>
+	
+		<p>che ha la stessa interfaccia di <code>recv</code>, ma invece di scrivere dal buffer, ci legge. Quindi noi riempiamo un buffer con la risposta, chiamiamo <code>send</code> e quei byte arriveranno magicamente al client. Analogamente, il valore di ritorno è il numero di byte effettivamente inviati. È possibile che il sistema operativo invii solo parte del buffer. In tal caso possiamo chiamare <code>send</code> un'altra volta sulla parte rimanente.</p>
+
+		<p>C'è da specificare che però le funzioni <code>send</code> e <code>recv</code> non sono particolari del server o del client. Dove il server fa <code>send</code>, il client farà <code>recv</code> e viceversa.</p>
+
+		<p>Aggiungiamo le ultime cose che abbiamo imparato al nostro server!</p>
+
+		<textarea disabled>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
+int main()
+{
+	// Apriamo il socket.
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(fd < 0)
+		{
+			fprintf(stderr, "La creazione del socket è fallita!\n");
+			return -1;
+		}
+
+	int port = 8080;
+
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(struct sockaddr_in));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = INADDR_ANY;
+
+	if(bind(fd, (struct sockaddr*) &addr, sizeof(struct sockaddr_in)))
+		{
+			fprintf(stderr, "Il binding è fallito..\n");
+
+			close(fd);
+			return -1;
+		}
+
+	if(listen(fd, 32))
+		{
+			fprintf(stderr, "Non sono riuscito ad ascoltaree\n");
+
+			close(fd);
+			return -1;
+		}
+
+	while(1)
+		{
+			// Accetta una connessione.
+
+			struct sockaddr_in client_addr;
+			socklen_t          client_addr_size = sizeof(client_addr);
+			int conn_fd = accept(fd, (struct sockaddr*) &client_addr, &client_addr_size);
+
+			if(conn_fd < 0)
+				{
+					// Per qualche motivo la chiamata ad [accept] è fallita.
+					// Saltiamo il resto del loop e torniamo dinuovo su [accept].
+					continue;
+				}
+
+			char request[512], response[512];
+
+			// Ricevi la richiesta.
+
+			ssize_t request_size = recv(conn_fd, request, sizeof(request), 0);
+
+			if(request_size <= 0)
+				{
+					// La lettura ha fallito oppure il client si è disconnesso.
+					// In ogni caso chiudiamo il socket ed accettiamo una nuova
+					// connessione.
+					close(conn_fd);
+					continue;
+				}
+
+			// Data la richiesta, genera la rispettiva risposta.
+			int response_size = make_response(request, request_size, response, sizeof(response));
+
+			// Ora invia la risposta.
+
+			ssize_t sent_bytes = 0;
+			do
+				{
+
+					ssize_t temp = send(conn_fd, response, response_size, 0);
+
+					if(temp < 0)
+						{
+							// Non sono riuscito ad inviare i byte. Chiudo
+							// la connessione e ne accetto un'altra.
+							close(conn_fd);
+							continue;
+						}
+
+					sent_bytes += temp;
+				}
+			while(sent_bytes < response_size);
+
+			// Chiudi la connessione e torna ad accettarne una nuova.
+			close(conn_fd);
+		}
+
+	// Ed ora lo chiudiamo.
+	close(fd);
+
+	return 0;
+}</textarea>
+		<p>Il server, per quel che ci interessa, è concluso. Ora quel che manca è definire la funzione <code>make_response</code> che implementa l'effettiva logica del software.</p>
+
+		<p>NOTA: Questo server non terminerà mai naturalmente perchè non uscità mai da quel loop. Questo significa che, in effetti, la chiamata <code>close</code> finale è superflua dato che non verrà mai eseguita. Questo però non è un problema dato che il sistema operativo chiude tutti i socket per noi quando il programma termina.<p>
+
+		<h3>3.5. Un esempio di business logic.</h3>
+
+		<p>Per completezza, vediamo una possibile implementazione di <code>make_response</code>. Immaginiamo di fare un sistema in cui il client produce una stringa ed il server deve trasformare tutti i caratteri nella loro versione maiuscola (se c'è), per poi inviarla indietro al client. Questo server però, accetterà solo caratteri ASCII (quindi caratteri codificati con valori compresi tra 0 e 127). Se la stringa contiene caratteri non ASCII, il server prefisserà "X" alla risposta seguita da uno spazio ed un messaggio di errore. Se invece la stringa contiene solo ASCII, il server prefisserà "O" seguito da uno spazio.</p>
+
+		<textarea disabled>
+int make_response(char *request, int request_size, char *response, int response_max_size)
+{
+	// Iteriamo lungo la richieste e, se troviamo caratteri che non 
+	// sono ASCII, come risposta mangiamo un messaggio di errore.
+
+	for(int i = 0; i < request_size; i += 1)
+		{
+			if((unsigned char) request[i] > 127)
+				{
+					int n = snprintf(response, "X Il carattere %d non è ASCII!", i);
+					assert(n >= 0);
+
+					if(n > response_max_size)
+						n = response_max_size;
+
+					return n;
+				}
+		}
+
+	// Se l'esecuzione del programma arriva qui, allora la richiesta
+	// è ASCII. Assumiamo che il buffer di risposta sia almeno grande
+	// due byte, in modo da poter scrivere il "O " iniziale senza
+	// dover controllare di non andare oltre la fine del buffer.
+
+	assert(response_max_size > 1);
+
+	response[0] = 'O';
+	response[1] = ' ';
+
+	// Ora copiamo nel buffer di uscita i valori del buffer di entrata
+	// convertendoli opportunamente. Se il buffer di uscita non è abbastanza
+	// grande da ospitare l'intero messaggio, tronchiamo il messaggio
+	// di uscita senza farci troppi problemi.
+
+	for(int i = 0; i < request_size && i+2 < response_max_size; i += 1)
+		{
+			if(islower(request[i]))
+				response[i+2] = toupper(request[i]);
+			else
+				response[i+2] = request[i];
+		}
+
+	int response_size;
+
+	if(request_size + 2 > response_max_size)
+		response_size = response_max_size;
+	else
+		response_size = request_size + 2;
+
+	return response_size;
+}</textarea>
 
 		<h2>Fonti</h2>
 		<ul>
@@ -262,6 +517,10 @@ int main()
 			<li><a href="https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order">https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order</a></li>
 			<li><a href="https://linux.die.net/man/3/htons">https://linux.die.net/man/3/htons</a></li>
 			<li><a href="https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order">https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order</a></li>
+			<li><a href="https://man7.org/linux/man-pages/man2/listen.2.html">https://man7.org/linux/man-pages/man2/listen.2.html</a></li>
+			<li><a href="https://man7.org/linux/man-pages/man2/accept.2.html">https://man7.org/linux/man-pages/man2/accept.2.html</a></li>
+			<li><a href="https://man7.org/linux/man-pages/man2/recv.2.html">https://man7.org/linux/man-pages/man2/recv.2.html</a></li>
+			<li><a href="https://man7.org/linux/man-pages/man2/send.2.html">https://man7.org/linux/man-pages/man2/send.2.html</a></li>
 		</ul>
 		---------------------
 		Potrebbero anche interessarti:
