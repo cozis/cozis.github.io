@@ -1,0 +1,16 @@
+Idee per post:
+	Approfondimenti ausiliari
+		- Allineamento e padding.
+		- SOA, AOS, e SOAOS.
+		- Rappresentazione del testo: ASCII ed UTF-8.
+		- Introduzione a Valgrind.
+		- Introduzione a GDB.
+		- Sulla complessita computazionale.
+
+	Strutture dati
+		- Gli array.
+		- Lo stack e le code.
+		- Le linked list.
+		- Le hash map.
+		- Gli alberi.
+		- Le corde.

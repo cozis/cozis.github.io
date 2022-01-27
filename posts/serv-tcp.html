@@ -1,12 +1,13 @@
 <html>
 	<head>
-		<link rel="stylesheet" href="style.css" media="screen" />
-		<title>Cozis - Scriviamo server TCP</title>
+		<link rel="stylesheet" href="../style.css" media="screen" />
+		<title>Cozis - Scriviamo un server TCP in C!</title>
 	</head>
 	<body>
-		<a href="index.html">Indice</a>
+		<a href="../index.html">Indice</a>
 
 		<h1>1. Scriviamo un server TCP in C!</h1>
+		
 		<p>
 			In questa guida intendo mostrare come si può creare un server TCP in C su Linux. Questa guida spallidisce al confronto con altre che sono reperibili su internet, ma per completezza, relativamente ad altre guide di questo blog (come quelle sui web server), ho deciso di scriverla comunque. Anche perchè, nonostante la quantità di contenuti reperibili sia infinita, sono per lo più in inglese.
 		</p>
@@ -180,41 +181,7 @@ struct in_addr {
 
 		<p>Il campo <code>sin_family</code> deve sempre mantenere il valore <code>AF_INET</code>, il campo <code>sin_port</code> mantiene il valore della nostra porta (un numero compreso fra 0 e 2^16-1 = 65535) ed infine <code>sin_addr</code> contiene il nostro indirizzo (un numero compreso fra 0 e 2^32-1). Il campo <code>sin_zero</code> non ci interessa e ci limitiamo a riempirlo di zeri. Il valore di bind è negativo se ha fallito ed è 0 quanto ha funzionato.</p>
 
-		<p>C'è solo un ultimo dettaglio da chiarire prima di poter fare il binding. I valori di porta ed indirizzo non possiamo assegnarli come se niente fosse. Esiste una cosa chiamata <code>network byte ordering</code>, che è legata al modo in cui la CPU ordina i byte in memoria (<i>little endian</i> e <i>big endian</i>). Supponiamo di avere un intero binario rappresentato in 4 byte (32 bit) N = A B C D, (dove A,B,C,D sono 4 possibili configurazioni di byte) e di volerlo salvare in memoria ad un indirizzo P. Un computer <i>little endian</i> salva N come</p>
-
-		<table class="memory">
-			<tr>
-				<td>P</td>
-				<td>P+1</td>
-				<td>P+2</td>
-				<td>P+3</td>
-			</tr>
-			<tr>
-				<td>D</td>
-				<td>C</td>
-				<td>B</td>
-				<td>A</td>
-			</tr>
-		</table>
-
-		<p>mentre un computer <i>big endian</i> lo salva come</p>
-
-		<table class="memory">
-			<tr>
-				<td>P</td>
-				<td>P+1</td>
-				<td>P+2</td>
-				<td>P+3</td>
-			</tr>
-			<tr>
-				<td>A</td>
-				<td>B</td>
-				<td>C</td>
-				<td>D</td>
-			</tr>
-		</table>
-
-		<p>Se un computer <i>big endian</i> ed uno <i>little endian</i> comunicano con un socket senza compensare per questa incompatibilità, allora inviando dati più grandi di un byte ci saranno corruzioni dei dati dovuti al fatto che uno dei computer invierà un valore N = ABCD e l'altro lo leggerà come N = DCBA. Per risolvere questo problema si fissa come convenzione l'ordinamento di byte della rete e tutti i computer che vi partecipano devono adattarsi. Questo convenzione è detta <i>network byte order</i>. <b>Il protocollo TCP definisce l'ordinamento byte della rete come <i>big endian</i></b>.</p>
+		<p>C'è solo un ultimo dettaglio da chiarire prima di poter fare il binding. I valori di porta ed indirizzo non possiamo assegnarli come se niente fosse. Esiste una cosa chiamata <code>network byte ordering</code>, che è legata al <a href="endianess.html">modo in cui la CPU ordina i byte in memoria</a> (<i>little endian</i> e <i>big endian</i>). Per risolvere questo problema si fissa come convenzione l'ordinamento di byte della rete e tutti i computer che vi partecipano devono adattarsi. Questo convenzione è detta <i>network byte order</i>. <b>Il protocollo TCP definisce l'ordinamento byte della rete come <i>big endian</i></b>.</p>
 
 		<p>I campi della porta <code>sin_port</code> e indirizzo <code>sin_addr</code> devono essere espressi rispetto all'ordinamento di byte della rete, non quello locale. Per assicurarci che i valori che forniamo siano codificati nel modo giusto usiamo le funzioni</p>
 
@@ -695,10 +662,97 @@ int main()
 
 	return 0;
 }</textarea>
-		
+
+		<h2>Implementiamo un client</h2>
 		<p>
-			<font color="red">Ed il client??</font>
+			Il programma client relativo ad un server del genere è simile. Basta creare il socket chiamando <code>socket</code> (come abbiamo fatto per il server) e poi connettersi al server usando la funzione <code>connect</code>
 		</p>
+
+		<textarea disabled>
+#include <sys/socket.h>
+
+int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);</textarea>
+	
+		<p>
+			dove <code>sockfd</code> è il socket che abbiamo creato, <code>addr</code> un buffer contenente l'indirizzo del server (come quello che abbiamo creato per <code>bind</code>) ed <code>addrlen</code> è la dimensione del buffer riferito da <code>addr</code> (quindi, dinuovo, nel nostro caso è <code>sizeof(struct sockaddr_in)</code>). Se la connessione ha successo, la funziona ritorna 0, altrimenti ritorna un intero negativo.
+		</p>
+
+		<p>
+			Una volta stabilita la connessione possiamo comunicare usando <code>send</code> e <code>recv</code> per poi chiudere la connessione con <code>close</code> quando abbiamo finito.
+		</p>
+
+		<p>
+			Date quel che abbiamo trattato sino ad ora dovrebbe essere facile immaginare un ipotetico client
+		</p>
+
+		<textarea disabled>
+int main()
+{
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(fd < 0)
+		{
+			fprintf(stderr, "Non sono riuscito a creare il socket!\n");
+			return -1;
+		}
+
+	struct sockaddr_in addr;
+
+	if(connect(fd, &addr, sizeof(addr)))
+		{
+			fprintf(stderr, "Non sono riuscito a connettermi..\n");
+
+			close(fd);
+			return -1;
+		}
+
+	static const char *items[] = {"Francesco", "1998", "\uff"};
+	int num_items = sizeof(items) / sizeof(items[0]);
+
+	for(int i = 0; i < num_items; i += 1)
+		{
+			int length = strlen(items[i]);
+
+			// Invia la richiesta.
+			ssize_t sent_bytes = 0;
+			do
+				{
+					int temp = send(fd, items[i] + sent_bytes, length - sent_bytes, 0);
+
+					if(temp == 0)
+						{
+							..
+						}
+
+					if(temp < 0)
+						{
+							..
+						}
+
+					sent_bytes -= temp;
+				}
+			while(send_bytes < length)
+		
+			char response[512];
+
+			int n = recv(fd, response, sizeof(response));
+
+			if(n < 0)
+				{
+					..
+				}
+
+			if(n == 0)
+				{
+					..
+				}
+
+			printf("%s\n", response);
+		}
+
+	close(fd);
+	return 0;
+}</textarea>
 
 		<p>
 			<font color="red">Come si può estendere per supportare l'IPv6??</font>
@@ -706,8 +760,16 @@ int main()
 
 		<h2>Fonti</h2>
 		<ul>
-			<li><a href="https://man7.org/linux/man-pages/man2/socket.2.html">https://man7.org/linux/man-pages/man2/socket.2.html</a></li>
-			<li><a href="https://man7.org/linux/man-pages/man2/bind.2.html">https://man7.org/linux/man-pages/man2/bind.2.html</a></li>
+			<li>
+				<a href="https://man7.org/linux/man-pages/man2/socket.2.html">
+					https://man7.org/linux/man-pages/man2/socket.2.html
+				</a>
+			</li>
+			<li>
+				<a href="https://man7.org/linux/man-pages/man2/bind.2.html">
+					https://man7.org/linux/man-pages/man2/bind.2.html
+				</a>
+			</li>
 			<li><a href="https://www.ibm.com/docs/en/zos/2.2.0?topic=functions-bind-bind-name-socket">https://www.ibm.com/docs/en/zos/2.2.0?topic=functions-bind-bind-name-socket</a></li>
 			<li><a href="https://www.gta.ufrj.br/ensino/eel878/sockets/sockaddr_inman.html">https://www.gta.ufrj.br/ensino/eel878/sockets/sockaddr_inman.html</a></li>
 			<li><a href="https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order">https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order</a></li>
@@ -724,8 +786,8 @@ int main()
 			Se ti è interessato questo articolo, potrebbero anche interessarti questi altri:
 		</p>
 		<ul>
-			<li><a href="">Server HTTP/0.9 in C!</a></li>
+			<li><a href="serv-http-0-9.html">Server HTTP/0.9 in C!</a></li>
 		</ul>
-		<script src="scripts.js"></script>
+		<script src="../scripts.js"></script>
 	</body>
 </html>
