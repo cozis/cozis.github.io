@@ -10,22 +10,19 @@
         <p>
             Gli assert, per qualche motivo, sono uno degli oggetti della programmazione che vedo fraintesi di più. 
 
-            Mi sono trovato più volte a spiegare e rispiegare cosa sono. Per questo momento ho deciso di scriverlo qui una volta per tutte e mandargli il link tutte le prossime volte che mi troverò a volerlo spiegare. 
-        </p>
-
-        <p>
-            In questo articolo spiegherò cosa sono gli <code>assert</code> il loro significato e come andrebbero usati.
+            Mi sono trovato più volte a spiegare e rispiegare cosa sono. Per questo motivo ho deciso di scrivere qui una spiegazione una volta per tutte e mandare il link tutte le volte che mi troverò a volerlo spiegare. 
         </p>
 
         <p>
             <b>NOTA</b>: Il contesto in cui parlerò degli assert è la programmazione C, ma sono un concetto comune anche ad altri linguaggi.
         </p>
 
-        <h2>Cosa sono?</h2>
+        <h2>Cos'è?</h2>
         <p>
-            L'assert è una <i>macro</i> definita in <code>assert.h</code> che prende come argomento un'espressione. Quando le chiamate ad <code>assert</code> vengono eseguite, se l'espressione risulta essere falsa, allora viene abortita l'esecuzione del programma. Se l'espressione risulta essere vera, allora sono trasparenti e non hanno effetto. 
-
-            Se però è definito il simbolo <code>NDEBUG</code> quando compiliamo il programma, allora tutti gli assert vengono disabilitati e non hanno effetto, indipendentemente dal risultato dell' espressione fornitagli.
+            L'assert è una <i>macro</i> definita in <code>assert.h</code> che prende come argomento un'espressione. Quando le chiamate ad <code>assert</code> vengono eseguite, se l'espressione risulta essere falsa, allora viene abortita l'esecuzione del programma. Se l'espressione risulta essere vera allora non hanno effetto ed il programma continua la sua esecuzione.
+        </p>
+        <p>
+            Se però è definito il simbolo <code>NDEBUG</code> quando compiliamo il programma, allora il loro comportamento cambia. In tal caso tutti gli assert vengono disabilitati e non hanno effetto, indipendentemente dal risultato dell'espressione fornitagli.
         </p>
         <p>
             Potremmo immaginare che <code>assert</code> sarà implementata più o meno così:
@@ -37,15 +34,15 @@
 #  define assert(exp) (exp)
 #endif</textarea>
         
-        <h2>A cosa servono?</h2>
+        <h2>A cosa serve?</h2>
         <p>
-            <b>Gli assert servono a comunicare ai lettori del codice sorgente che una certa condizione è sempre vera</b>. Per questo motivo, non sono da intendersi come codice ma più come commenti, perchè servono a documentare e non ad implementare funzionalità. 
+            <b>Assert serve a comunicare ai lettori del codice sorgente che una certa condizione è sempre vera</b>. Per questo motivo, non è da intendersi come codice ma più come un commento, perchè servono a documentare e non ad implementare funzionalità. 
 
             Ogni assert è un messaggio ai i futuri lettori di una porzione di codice che ricorda come un fatto per necessità del programma sia sempre vero, in modo tale da permettergli di seguire meglio la logica del codice in questione.
         </p>
 
         <p>
-            La cosa che però rende conveniente un assert rispetto ad un commento ordinario, è che permette di controllare quando il programma rompe le regole (anche note come <i>invarianti</i>) che ci siamo imposti di rispettare. Questo dovrebbe accadere solo in fase di sviluppo, quindi solo in tal caso gli assert dovrebbero essere abilitati. In un programma corretto, le espressioni fornite agli assert sono sempre vere.
+            La cosa che però rende conveniente un assert rispetto ad un commento ordinario, è che permette di controllare quando il programma rompe le regole che ci siamo imposti di rispettare (anche note come <i>invarianti</i>). Questo dovrebbe accadere solo in fase di sviluppo, quindi solo in tal caso gli assert dovrebbero essere abilitati. In un programma corretto, le espressioni fornite agli assert sono sempre vere.
         </p>
 
         <p>
