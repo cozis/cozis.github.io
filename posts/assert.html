@@ -1,0 +1,108 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="../style.css" media="screen" />
+        <title>Cozis - Gli assert</title>
+    </head>
+    <body>
+        <a href="../index.html">Indice</a>
+
+        <h1>Gli assert</h1>
+        <p>
+            Gli assert, per qualche motivo, sono uno degli oggetti della programmazione che vedo fraintesi di più. 
+
+            Mi sono trovato più volte a spiegare e rispiegare cosa sono. Per questo momento ho deciso di scriverlo qui una volta per tutte e mandargli il link tutte le prossime volte che mi troverò a volerlo spiegare. 
+        </p>
+
+        <p>
+            In questo articolo spiegherò cosa sono gli <code>assert</code> il loro significato e come andrebbero usati.
+        </p>
+
+        <p>
+            <b>NOTA</b>: Il contesto in cui parlerò degli assert è la programmazione C, ma sono un concetto comune anche ad altri linguaggi.
+        </p>
+
+        <h2>Cosa sono?</h2>
+        <p>
+            L'assert è una <i>macro</i> definita in <code>assert.h</code> che prende come argomento un'espressione. Quando le chiamate ad <code>assert</code> vengono eseguite, se l'espressione risulta essere falsa, allora viene abortita l'esecuzione del programma. Se l'espressione risulta essere vera, allora sono trasparenti e non hanno effetto. 
+
+            Se però è definito il simbolo <code>NDEBUG</code> quando compiliamo il programma, allora tutti gli assert vengono disabilitati e non hanno effetto, indipendentemente dal risultato dell' espressione fornitagli.
+        </p>
+        <p>
+            Potremmo immaginare che <code>assert</code> sarà implementata più o meno così:
+        </p>
+        <textarea disabled>
+#ifndef NDEBUG
+#  define assert(exp) { if(!(exp)) abort(); }
+#else
+#  define assert(exp) (exp)
+#endif</textarea>
+        
+        <h2>A cosa servono?</h2>
+        <p>
+            <b>Gli assert servono a comunicare ai lettori del codice sorgente che una certa condizione è sempre vera</b>. Per questo motivo, non sono da intendersi come codice ma più come commenti, perchè servono a documentare e non ad implementare funzionalità. 
+
+            Ogni assert è un messaggio ai i futuri lettori di una porzione di codice che ricorda come un fatto per necessità del programma sia sempre vero, in modo tale da permettergli di seguire meglio la logica del codice in questione.
+        </p>
+
+        <p>
+            La cosa che però rende conveniente un assert rispetto ad un commento ordinario, è che permette di controllare quando il programma rompe le regole (anche note come <i>invarianti</i>) che ci siamo imposti di rispettare. Questo dovrebbe accadere solo in fase di sviluppo, quindi solo in tal caso gli assert dovrebbero essere abilitati. In un programma corretto, le espressioni fornite agli assert sono sempre vere.
+        </p>
+
+        <p>
+            Quindi, nel codice aggiungiamo gli assert per documentare alcuni fatti della logica del programma e, per assicurarci che in fase di sviluppo queste assunzioni di base sono rispettate, diciamo agli assert di abortire il programma nel caso non lo siano.
+
+            Quando non siamo più in fase di sviluppo assumiamo che le invarianti imposte dagli assert siano sempre vere, rendendo il controllo degli assert superfluo perchè le loro espressioni saranno sempre verificate. A questo punto li disabilitiamo definendo <code>NDEBUG</code>.
+        </p>
+
+        <h2>Esempi di uso scorretto</h2>
+        <p>
+            L'uso scorretto più comune che vedo è quello di usare l'assert nei casi in cui nella logica del programma potrebbe avvenire un errore, ma il programmatore non vuole scrivere il codice che lo gestisce. In tal caso il programmatore ignorante mette un assert sulla condizione di errore. Un esempio di questo caso potrebbe essere l'apertura di un file:
+        </p>
+
+        <textarea disabled>
+#include <stdio.h>
+
+int main()
+{
+    FILE *fp = fopen("file.txt", "r");
+    assert(fp != NULL);
+
+    // .. fai cose con il file ..
+
+    fclose(fp);
+    return 0;
+}</textarea>
+        <p>
+            In questo caso l'uso è scorretto perchè è possibile che il file non esista, anche se il programma è scritto correttamente ed è privo di bug. L'esistenza del file non è qualcosa sul quale il programma ha il controllo, quindi è realistico il caso in cui questo non esista ed <code>fopen</code> ritorni <code>NULL</code>. Quando poi avremo concluso lo sviluppo del nostro programma e faremo una compilazione non di debug definendo <code>NDEBUG</code>, questo controllo diventerà una nop (no operation) ed il nostro programma resterà scoperto a questa condizione di errore.
+        </p>
+
+        <p>
+            <b>NOTA</b>: È da notare che decidere di abortire quando la <code>fopen</code> fallisce è una decisione perfettamente ragionevole, il problema sta nel farlo usando una chiamata ad <code>assert</code>.
+        </p>
+        <p>
+            <b>NOTA</b>: È naturale "impigrirsi" e non voler gestire subito una condizione di errore. Del resto il codice di un programma può essere rappresentato come un albero, dove la separazione di rami corrisponde ad un if-else. Gestire tutti gli errori subito corrisponde a percorrere questo albero depth-first, quando magari una persona è più portata ad un approccio breadth-first (cioè trattare prima i casi generali e poi gestire i casi nel dettaglio). Il problema, di nuovo, è l'uso degli <code>assert</code> per fare questa cosa. 
+        </p>
+
+        <p>
+            Il secondo caso di uso scorretto è quello in cui una condizione di errore si verifica, ma il programma non può recuperare da questa crisi. Per questo motivo l'unica opzione è abortire l'esecuzione. Un esempio di questo caso è l'allocazione della memoria. I programmi che scriviamo comunemente tendono a non essere progettati a recuperare dal fallimento di un'allocazione, quindi se, ad esempio, <code>malloc</code> ci restituisce un bel <code>NULL</code>, non possiamo far altro che abortire. In questo caso potrebbe sembrare una buona idea usare <code>assert</code> dato che manda il programma in abort quando si verifica la falsità di un'affermazione:
+        </p>
+        <textarea disabled>
+#include <stdlib.h>
+
+int main()
+{
+    void *p = malloc(1024);
+    assert(p != NULL);
+
+    // .. //
+
+    free(p);
+    return 0; 
+}</textarea>
+        <p>
+            ma questo è scorretto, perchè non avere memoria è una condizione perfettamente plausibile anche per un programma corretto, quindi quando andremo a fare una compilazione non di debug definendo <code>NDEBUG</code>, questi controlli svaniranno, lasciano il programma scoperto a queste condizioni di errore.
+        </p>
+
+        <script src="../scripts.js"></script>
+    </body>
+</html>

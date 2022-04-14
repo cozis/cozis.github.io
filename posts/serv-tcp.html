@@ -9,7 +9,17 @@
 		<h1>1. Scriviamo un server TCP in C!</h1>
 		
 		<p>
-			In questa guida intendo mostrare come si può creare un server TCP in C su Linux. Questa guida impallidisce al confronto con altre che sono reperibili su internet, ma per completezza, relativamente ad altre guide di questo blog (come quelle sui web server), ho deciso di scriverla comunque. Anche perchè, nonostante la quantità di contenuti reperibili sia infinita, sono per lo più in inglese.
+			In questa guida intendo mostrare come si può creare un server TCP con il relativo 
+			client in C su Linux. Potrebbe sembrare inusuale il modo in cui sono accentuati
+			alcuni argomenti rispetto ad altri. Il motivo di questo fatto è che il fine di 
+			questa guida è di gettare le basi per poi costruire un web server.
+		<p>
+		
+		<p>
+			Questa guida impallidisce al confronto con altre reperibili 
+			su internet, ma per completezza, relativamente ad altre guide di questo blog (come 
+			quelle sui web server), ho deciso di scriverla comunque. Anche perchè, nonostante 
+			la quantità di contenuti reperibili sia infinita, sono per lo più in inglese.
 		</p>
 
 		<p>
@@ -22,8 +32,10 @@
 		</ul>
 		
 		<p>
-			Ciascuno degli elementi di questa lista può essere sostituito con un'adeguata dose di buona volontà, se necessario!
-		</p>
+			Nonostante questa guida assuma un sistema Linux, la maggior parte delle considerazioni
+			vale anche per altre piattaforme. In futuro potrei estendere questa guida ad altre 
+			piattaforme, vedremo!
+ 		</p>
 
 		<p><b>NOTA</b>: Questo articolo non è ancora completo!</p>
 
@@ -50,9 +62,46 @@
 
 		<h3>2.1. Cos'è un server? Cos'è TCP? Cos'è un server TCP?!</h3>
 
-		<p>I computer possono comunicare fra loro inviandosi arbitrarie sequenze di byte. Su due piedi uno penserebbe che questi canali di comunicazione possono avvenire quando i due computer contemporaneamente scelgono di interagire. Pensandoci attentamente però, la comunicazione può avvenire solo quando uno dei due nodi sceglie di cominciare la comunicazione con l'altro, unidirezionalmente. Quindi uno dei due deve essere sempre in attesa di connessioni. Del resto è così anche con i telefoni cellulare. Ciascuno di noi è perennemente in attesa di chiamate (o almeno quando il telefono è acceso) in modo tale che nell'esatto momento in cui qualcuno vuole chiamarci, anche noi siamo pronti per la comunicazione. Se noi avessimo il cellulare spento accetto quando vogliamo ricevere una chiamata, e gli altri ci provassero a chiamare quando vogliono interagire, probabilmente non riusciremmo mai a parlare! Per questo motivo uno dei computer deve essere sempre in ascolto per connessioni mentre è l'altro che decide quando cominciare la comunicazione. In questo contesto, il computer che è sempre pronto ad interagire è chiamato <b>server</b>, mentre l'altro è chiamato <b>client</b>. Un esempio di questa architettura sono il browser e le macchine che mantengono i siti web. Il browser sono i client e le macchine che mantengono i siti sono i server. Questi server mantengono i siti e lo mandano ad ogni client che lo chiede.</p>
+		<p>
+			I computer possono comunicare fra loro inviandosi arbitrarie sequenze di byte. 
+			Su due piedi uno penserebbe che questi canali di comunicazione possono avvenire 
+			quando i due computer contemporaneamente scelgono di interagire. Pensandoci 
+			attentamente però, la comunicazione può avvenire solo quando uno dei due nodi 
+			sceglie di cominciarla con l'altro, unidirezionalmente. Uno dei due deve essere 
+			sempre in attesa di connessioni. Del resto è così anche con i telefoni cellulare. 
+			Ciascuno di noi è perennemente in attesa di chiamate (o almeno quando il telefono 
+			è acceso) in modo tale che nell'esatto momento in 
+			cui qualcuno vuole chiamarci, anche noi siamo pronti per la comunicazione. Se 
+			avessimo il cellulare spento accetto quando vogliamo ricevere una chiamata, 
+			e gli altri ci provassero a chiamare quando vogliono interagire, probabilmente 
+			non riusciremmo mai a parlare! Per questo motivo uno dei computer deve essere 
+			sempre in ascolto per connessioni mentre è l'altro che decide quando cominciare 
+			la comunicazione. In questo contesto, il computer che è sempre pronto ad interagire 
+			è chiamato <b>server</b>, mentre l'altro è chiamato <b>client</b>. Un esempio di 
+			questa architettura sono il browser e le macchine che mantengono i siti web, dove
+			i primi sono i client ed i secondi i server. I server che mantengono i siti sono
+			sempre in ascolto per connessioni. Quando vogliamo accedere ad un sito web il
+			browser lo chiede al server che essendo sempre in ascolto può subito rispondere
+			con i contenuti che cerchiamo.
+		</p>
 
-		<p>Per far avvenire questa comunicazione, i computer devono essere collegati fisicamente con dei cavi. Una volta collegati, a ciascun computer è associato un identificativo univoco (noto come indirizzo IP) che può essere usato per contattarlo. A questo punto è necessario fare un'ulteriore considerazione. In effetti, quando diciamo che due computer stanno comunicando, in realtà sono due programmi su questi computer che stanno comunicando. Ma su un computer possono girare più di un programma, quindi un identificativo all'intero computer non basta. È necessario introdurre un identificativo aggiuntivo per i vari programmi all'interno di ciascun computer che ha a sua volta un identificativo. L'identificativo del programma è detto porta, mentre quello del computer è detto indirizzo. Un programma, per avviare la comunicazione con un programma remoto, deve conoscere la coppia (indirizzo, porta) di quest'ultimo. Usualmente per spiegare quest'idea si usa la metafora secondo la quale la rete internet è una città, dove ciascun palazzo è un computer ed ogni camera del palazzo è un programma. Per andare da casa nostra a quella di un nostro amico, abbiamo bisogno di indirizzo e numero di porta.</p>
+		<p>
+			Per far avvenire questa comunicazione, i computer devono essere collegati fisicamente 
+			con dei cavi. Una volta collegati, a ciascun computer è associato un identificativo 
+			univoco (noto come indirizzo IP) che può essere usato per contattarlo. A questo punto 
+			è necessario fare un'ulteriore considerazione. In effetti, quando diciamo che due 
+			computer stanno comunicando, in realtà sono due programmi su questi computer che 
+			stanno comunicando. Ma su un computer possono girare più di un programma, quindi 
+			un identificativo all'intero computer non basta. È necessario introdurre un identificativo 
+			aggiuntivo per i vari programmi all'interno di ciascun computer che ha a sua volta 
+			un identificativo. L'identificativo del programma è detto porta, mentre quello del 
+			computer è detto indirizzo. Un programma, per avviare la comunicazione con un programma 
+			remoto, deve conoscere la coppia (indirizzo, porta) di quest'ultimo. Usualmente per 
+			spiegare quest'idea si usa la metafora secondo la quale la rete internet è una città, 
+			dove ciascun palazzo è un computer ed ogni camera del palazzo è un programma. Per 
+			andare da casa nostra a quella di un nostro amico, abbiamo bisogno di indirizzo e 
+			numero di porta.
+		</p>
 
 		<p>
 			<font color="red">Come è fatto un indirizzo? Ed una porta? E cosa sono le "reti" in generale?</font>
