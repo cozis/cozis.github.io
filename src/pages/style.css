@@ -36,7 +36,12 @@ h1 {
 
 h2 {
 	/*font-size: 26px;*/
+    width: 100%;
 	margin-top: 50px;
+}
+
+h2 .emoticon {
+    float: right;
 }
 
 h3 {
