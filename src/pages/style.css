@@ -2,11 +2,14 @@ body {
 	max-width: 800px;
 	margin: auto;
 	padding: 30px;
-	/* background: #f1f4ff; */
+    font-size: 16px;
+    font-family: sans-serif;
 }
 
-a, p, h1, h2, h3, code, li {
-	font-family: sans-serif;
+code {
+    font-weight: bold;
+    font-family: monospace;
+    background: #eee;
 }
 
 a {
@@ -19,8 +22,7 @@ a:hover {
 }
 
 h1 {
-	border-bottom: 2px solid #ccc;
-	padding-bottom: 5px;
+    text-align: center;
 }
 
 h2 {
@@ -44,13 +46,8 @@ h3 {
 
 p {
 	line-height: 160%;
-  text-align: justify;
-  text-justify: inter-word;
-}
-
-code {
-	color: #6aca64;
-	font-weight: bold;
+    text-align: justify;
+    text-justify: inter-word;
 }
 
 li {
@@ -74,10 +71,10 @@ li {
 
 div.c2h-code {
     padding: 10px;
-    border-radius: 3px;
+    /*border-radius: 3px;*/
 
     font-family: monospace;
-    font-size: 16px;
+    /*font-size: 16px;*/
 
     color: white;
     background: hsl(210, 15%, 22%);
@@ -108,6 +105,7 @@ div.c2h-code table {
 
 div.c2h-code table td {
     color: white;
+    padding: 0;
     vertical-align: top;
 }
 
