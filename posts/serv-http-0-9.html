@@ -32,205 +32,222 @@
 
 		<p>Un server HTTP è usualmente implementato su una connessione TCP aperta sulla porta 80. Quindi dovremo creare un server TCP prima. Per alleggerire questo articolo ho diviso la parte in cui spiego cos'è e come si realizza un server TCP <a href="serv-tcp.html">qui</a>. Del resto il protocollo HTTP poggia sul protocollo TCP (o qualsiasi altro protocollo orientato alla connessione). Il TCP specifica come i byte vengono trasferiti fra due computer, mentre l'HTTP specifica cosa viene comunicato. Senza dilungarci troppo, costruiamo una struttura analoga a quella che abbiamo costruito alla fine dell'altro post</p>
 
-		<textarea disabled>
-int main()
-{
-	int port = 80;
+		<div class="c2h-code">
+  <div class="c2h-code-inner">
+    <table>
+      <tr><td>1</td><td></td></tr>
+      <tr><td>2</td><td><span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier c2h-fdeclname">main</span>()</td></tr>
+      <tr><td>3</td><td>{</td></tr>
+      <tr><td>4</td><td>    <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">port</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">80</span>;</td></tr>
+      <tr><td>5</td><td></td></tr>
+      <tr><td>6</td><td>    <span class="c2h-comment">// Chiediamo al sistema operativo di aprire un socket TCP.</span></td></tr>
+      <tr><td>7</td><td>    <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">fd</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">socket</span>(<span class="c2h-identifier">AF_INET</span>, <span class="c2h-identifier">SOCK_STREAM</span>, <span class="c2h-val-int">0</span>);</td></tr>
+      <tr><td>8</td><td></td></tr>
+      <tr><td>9</td><td>    <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier">fd</span> <span class="c2h-operator">&lt;</span> <span class="c2h-val-int">0</span>)</td></tr>
+      <tr><td>10</td><td>        {</td></tr>
+      <tr><td>11</td><td>            <span class="c2h-identifier c2h-fcallname">fprintf</span>(<span class="c2h-identifier">stderr</span>, <span class="c2h-val-str">"Non sono riuscito ad aprire il socket!\n"</span>);</td></tr>
+      <tr><td>12</td><td>            <span class="c2h-kword c2h-kword-return">return</span> <span class="c2h-operator">-</span><span class="c2h-val-int">1</span>;</td></tr>
+      <tr><td>13</td><td>        }</td></tr>
+      <tr><td>14</td><td></td></tr>
+      <tr><td>15</td><td>    <span class="c2h-comment">// Ora specifichiamo al sistema operativo a quale indirizzo</span></td></tr>
+      <tr><td>16</td><td>    <span class="c2h-comment">// (e porta) vogliamo ascoltare per le richieste. La porta</span></td></tr>
+      <tr><td>17</td><td>    <span class="c2h-comment">// alla quale siamo interessati è la 80, mentre per l'indirizzo</span></td></tr>
+      <tr><td>18</td><td>    <span class="c2h-comment">// IP ci va bene qualsiasi sia a nostra disposizione, quindi</span></td></tr>
+      <tr><td>19</td><td>    <span class="c2h-comment">// usiamo INADDR_ANY.</span></td></tr>
+      <tr><td>20</td><td>    {</td></tr>
+      <tr><td>21</td><td>        <span class="c2h-kword c2h-kword-struct">struct</span> <span class="c2h-identifier">sockaddr_in</span> <span class="c2h-identifier">addr</span>;</td></tr>
+      <tr><td>22</td><td>        <span class="c2h-identifier c2h-fcallname">memset</span>(<span class="c2h-operator">&</span><span class="c2h-identifier">addr</span>, <span class="c2h-val-int">0</span>, <span class="c2h-kword c2h-kword-sizeof">sizeof</span>(<span class="c2h-kword c2h-kword-struct">struct</span> <span class="c2h-identifier">sockaddr_in</span>));</td></tr>
+      <tr><td>23</td><td>        <span class="c2h-identifier">addr</span>.<span class="c2h-identifier">sin_family</span> <span class="c2h-operator">=</span> <span class="c2h-identifier">AF_INET</span>;</td></tr>
+      <tr><td>24</td><td>        <span class="c2h-identifier">addr</span>.<span class="c2h-identifier">sin_port</span>   <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">htons</span>(<span class="c2h-identifier">port</span>);</td></tr>
+      <tr><td>25</td><td>        <span class="c2h-identifier">addr</span>.<span class="c2h-identifier">s_addr</span>.<span class="c2h-identifier">sin_addr</span> <span class="c2h-operator">=</span> <span class="c2h-identifier">INADDR_ANY</span>;</td></tr>
+      <tr><td>26</td><td></td></tr>
+      <tr><td>27</td><td>        <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier c2h-fcallname">bind</span>(<span class="c2h-identifier">fd</span>, (<span class="c2h-kword c2h-kword-struct">struct</span> <span class="c2h-identifier">sockaddr</span><span class="c2h-operator">*</span>) <span class="c2h-operator">&</span><span class="c2h-identifier">addr</span>, <span class="c2h-kword c2h-kword-sizeof">sizeof</span>(<span class="c2h-identifier">addr</span>)))</td></tr>
+      <tr><td>28</td><td>            {</td></tr>
+      <tr><td>29</td><td>                <span class="c2h-identifier c2h-fcallname">fprintf</span>(<span class="c2h-identifier">stderr</span>, <span class="c2h-val-str">"Non sono riuscito ad associare il socket all'indirizzo.\n"</span>);</td></tr>
+      <tr><td>30</td><td>                </td></tr>
+      <tr><td>31</td><td>                <span class="c2h-identifier c2h-fcallname">close</span>(<span class="c2h-identifier">fd</span>);</td></tr>
+      <tr><td>32</td><td>                <span class="c2h-kword c2h-kword-return">return</span> <span class="c2h-operator">-</span><span class="c2h-val-int">1</span>;</td></tr>
+      <tr><td>33</td><td>            }</td></tr>
+      <tr><td>34</td><td>    }</td></tr>
+      <tr><td>35</td><td></td></tr>
+      <tr><td>36</td><td>    <span class="c2h-comment">// Ora cominciamo ad ascoltare le richieste.</span></td></tr>
+      <tr><td>37</td><td>    <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier c2h-fcallname">listen</span>(<span class="c2h-identifier">fd</span>, <span class="c2h-val-int">8</span>))</td></tr>
+      <tr><td>38</td><td>        {</td></tr>
+      <tr><td>39</td><td>            <span class="c2h-identifier c2h-fcallname">fprintf</span>(<span class="c2h-identifier">stderr</span>, <span class="c2h-val-str">"Non sono riuscito ad cominciare ad ascolare.\n"</span>);</td></tr>
+      <tr><td>40</td><td>            </td></tr>
+      <tr><td>41</td><td>            <span class="c2h-identifier c2h-fcallname">close</span>(<span class="c2h-identifier">fd</span>);</td></tr>
+      <tr><td>42</td><td>            <span class="c2h-kword c2h-kword-return">return</span> <span class="c2h-operator">-</span><span class="c2h-val-int">1</span>;</td></tr>
+      <tr><td>43</td><td>        }</td></tr>
+      <tr><td>44</td><td></td></tr>
+      <tr><td>45</td><td>    <span class="c2h-comment">// ..Ora siamo pronti a ricevere richieste.</span></td></tr>
+      <tr><td>46</td><td></td></tr>
+      <tr><td>47</td><td>    <span class="c2h-kword c2h-kword-while">while</span>(<span class="c2h-val-int">1</span>)</td></tr>
+      <tr><td>48</td><td>        {</td></tr>
+      <tr><td>49</td><td>            <span class="c2h-comment">// Accetto una connessione.</span></td></tr>
+      <tr><td>50</td><td></td></tr>
+      <tr><td>51</td><td>            <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">cfd</span>;</td></tr>
+      <tr><td>52</td><td>            {</td></tr>
+      <tr><td>53</td><td>                <span class="c2h-kword c2h-kword-struct">struct</span> <span class="c2h-identifier">sockaddr_in</span> <span class="c2h-identifier">addr</span>;</td></tr>
+      <tr><td>54</td><td>                <span class="c2h-identifier">socklen_t</span>          <span class="c2h-identifier">size</span> <span class="c2h-operator">=</span> <span class="c2h-kword c2h-kword-sizeof">sizeof</span>(<span class="c2h-identifier">addr</span>):</td></tr>
+      <tr><td>55</td><td></td></tr>
+      <tr><td>56</td><td>                <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">cfd</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">accept</span>(<span class="c2h-identifier">fd</span>, (<span class="c2h-kword c2h-kword-struct">struct</span> <span class="c2h-identifier">sockaddr</span><span class="c2h-operator">*</span>) <span class="c2h-operator">&</span><span class="c2h-identifier">addr</span>, <span class="c2h-identifier">size</span>);</td></tr>
+      <tr><td>57</td><td></td></tr>
+      <tr><td>58</td><td>                <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier">cfd</span> <span class="c2h-operator">&lt;</span> <span class="c2h-val-int">0</span>)</td></tr>
+      <tr><td>59</td><td>                    {</td></tr>
+      <tr><td>60</td><td>                        <span class="c2h-comment">// Uops! Qualcosa è andato storto mentre cercavamo</span></td></tr>
+      <tr><td>61</td><td>                        <span class="c2h-comment">// di accettare una nuove connessione. </span></td></tr>
+      <tr><td>62</td><td></td></tr>
+      <tr><td>63</td><td>                        <span class="c2h-comment">// Continuiamo con la prossima richiesta.</span></td></tr>
+      <tr><td>64</td><td>                        <span class="c2h-kword c2h-kword-continue">continue</span>; <span class="c2h-comment">// Torna dinuovo al passo 1.</span></td></tr>
+      <tr><td>65</td><td>                    }</td></tr>
+      <tr><td>66</td><td>            }</td></tr>
+      <tr><td>67</td><td></td></tr>
+      <tr><td>68</td><td>            <span class="c2h-comment">// ..Leggo la richiesta e rispondo appositamente..</span></td></tr>
+      <tr><td>69</td><td></td></tr>
+      <tr><td>70</td><td>            <span class="c2h-comment">// Chiudo la connessione.</span></td></tr>
+      <tr><td>71</td><td>            <span class="c2h-identifier c2h-fcallname">close</span>(<span class="c2h-identifier">cfd</span>);</td></tr>
+      <tr><td>72</td><td>        }</td></tr>
+      <tr><td>73</td><td></td></tr>
+      <tr><td>74</td><td>    <span class="c2h-comment">// Ora chiudiamo il socket.</span></td></tr>
+      <tr><td>75</td><td>    <span class="c2h-identifier c2h-fcallname">close</span>(<span class="c2h-identifier">fd</span>);</td></tr>
+      <tr><td>76</td><td></td></tr>
+      <tr><td>77</td><td>    <span class="c2h-comment">// NOTA: In effetti chiudere il socket è inutile dato che</span></td></tr>
+      <tr><td>78</td><td>    <span class="c2h-comment">//       il loop precedente non terminerà mai, ma noi lo</span></td></tr>
+      <tr><td>79</td><td>    <span class="c2h-comment">//       facciamo comunque perchè è una buona abitudine.</span></td></tr>
+      <tr><td>80</td><td>    <span class="c2h-kword c2h-kword-return">return</span> <span class="c2h-val-int">0</span>;</td></tr>
+      <tr><td>81</td><td>}</td></tr>
+      <tr><td>82</td><td></td></tr>
+      <tr><td>83</td><td>        </td></tr>
+    </table>
+  </div>
+</div>
 
-	// Chiediamo al sistema operativo di aprire un socket TCP.
-	int fd = socket(AF_INET, SOCK_STREAM, 0);
 
-	if(fd < 0)
-		{
-			fprintf(stderr, "Non sono riuscito ad aprire il socket!\n");
-			return -1;
-		}
-
-	// Ora specifichiamo al sistema operativo a quale indirizzo
-	// (e porta) vogliamo ascoltare per le richieste. La porta
-	// alla quale siamo interessati è la 80, mentre per l'indirizzo
-	// IP ci va bene qualsiasi sia a nostra disposizione, quindi
-	// usiamo INADDR_ANY.
-	{
-		struct sockaddr_in addr;
-		memset(&addr, 0, sizeof(struct sockaddr_in));
-		addr.sin_family = AF_INET;
-		addr.sin_port   = htons(port);
-		addr.s_addr.sin_addr = INADDR_ANY;
-
-		if(bind(fd, (struct sockaddr*) &addr, sizeof(addr)))
-			{
-				fprintf(stderr, "Non sono riuscito ad associare il socket all'indirizzo.\n");
-				
-				close(fd);
-				return -1;
-			}
-	}
-
-	// Ora cominciamo ad ascoltare le richieste.
-	if(listen(fd, 8))
-		{
-			fprintf(stderr, "Non sono riuscito ad cominciare ad ascolare.\n");
-			
-			close(fd);
-			return -1;
-		}
-
-	// ..Ora siamo pronti a ricevere richieste.
-
-	while(1)
-		{
-			// Accetto una connessione.
-
-			int cfd;
-			{
-				struct sockaddr_in addr;
-				socklen_t          size = sizeof(addr):
-
-				int cfd = accept(fd, (struct sockaddr*) &addr, size);
-
-				if(cfd < 0)
-					{
-						// Uops! Qualcosa è andato storto mentre cercavamo
-						// di accettare una nuove connessione. 
-
-						// Continuiamo con la prossima richiesta.
-						continue; // Torna dinuovo al passo 1.
-					}
-			}
-
-			// ..Leggo la richiesta e rispondo appositamente..
-
-			// Chiudo la connessione.
-			close(cfd);
-		}
-
-	// Ora chiudiamo il socket.
-	close(fd);
-
-	// NOTA: In effetti chiudere il socket è inutile dato che
-	//       il loop precedente non terminerà mai, ma noi lo
-	//       facciamo comunque perchè è una buona abitudine.
-	return 0;
-}
-		</textarea>
 		<p>Ora ci possiamo occupare del cuore del problema, cioè ricevere, interpretare e gestire le richieste.</p>
 
-		<textarea disabled>
-char buffer[256];
-int n;
-{		
-	// Assumiamo che il contenuto della richiesta non può contenere più 
-	// di 255 caratteri. Questo numero è arbitrario e, fondamentalmente,
-	// si basa su quanto crediamo che saranno lunghi i nomi dei file
-	// contenuti nelle richieste. Abbiamo fatto si che il buffer avesse
-	// un byte in più rispetto al massimo in modo da capire se il client
-	// ha mandato una richiesta più grande del dovuto.
+		<div class="c2h-code">
+  <div class="c2h-code-inner">
+    <table>
+      <tr><td>1</td><td></td></tr>
+      <tr><td>2</td><td><span class="c2h-kword c2h-kword-char">char</span> <span class="c2h-identifier">buffer</span>[<span class="c2h-val-int">256</span>];</td></tr>
+      <tr><td>3</td><td><span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">n</span>;</td></tr>
+      <tr><td>4</td><td>{        </td></tr>
+      <tr><td>5</td><td>    <span class="c2h-comment">// Assumiamo che il contenuto della richiesta non può contenere più </span></td></tr>
+      <tr><td>6</td><td>    <span class="c2h-comment">// di 255 caratteri. Questo numero è arbitrario e, fondamentalmente,</span></td></tr>
+      <tr><td>7</td><td>    <span class="c2h-comment">// si basa su quanto crediamo che saranno lunghi i nomi dei file</span></td></tr>
+      <tr><td>8</td><td>    <span class="c2h-comment">// contenuti nelle richieste. Abbiamo fatto si che il buffer avesse</span></td></tr>
+      <tr><td>9</td><td>    <span class="c2h-comment">// un byte in più rispetto al massimo in modo da capire se il client</span></td></tr>
+      <tr><td>10</td><td>    <span class="c2h-comment">// ha mandato una richiesta più grande del dovuto.</span></td></tr>
+      <tr><td>11</td><td></td></tr>
+      <tr><td>12</td><td>    <span class="c2h-comment">// Leggiamo nel buffer il contenuto della richiesta.</span></td></tr>
+      <tr><td>13</td><td>    <span class="c2h-identifier">n</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">read</span>(<span class="c2h-identifier">cfd</span>, <span class="c2h-identifier">buffer</span>, <span class="c2h-kword c2h-kword-sizeof">sizeof</span>(<span class="c2h-identifier">buffer</span>));</td></tr>
+      <tr><td>14</td><td></td></tr>
+      <tr><td>15</td><td>    <span class="c2h-comment">// Se un errore è avvenuto, allora [n] è negativo. Se il client si è</span></td></tr>
+      <tr><td>16</td><td>    <span class="c2h-comment">// disconnesso prima di inviare qualcosa, allora [n] è zero. Altrimenti</span></td></tr>
+      <tr><td>17</td><td>    <span class="c2h-comment">// [n] è pari al numero di byte copiati nel buffer. Se il buffer è</span></td></tr>
+      <tr><td>18</td><td>    <span class="c2h-comment">// completamente riempito, è possibile che il client abbia inviato più</span></td></tr>
+      <tr><td>19</td><td>    <span class="c2h-comment">// dati di quelli che potevano entrare nel buffer. Questi dati in più</span></td></tr>
+      <tr><td>20</td><td>    <span class="c2h-comment">// avremmo potuti leggerli chiamando una seconda volta [read]. Noi però</span></td></tr>
+      <tr><td>21</td><td>    <span class="c2h-comment">// non siamo interessati a farlo.</span></td></tr>
+      <tr><td>22</td><td></td></tr>
+      <tr><td>23</td><td>    <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier">n</span> <span class="c2h-operator">&lt;</span> <span class="c2h-val-int">0</span>)</td></tr>
+      <tr><td>24</td><td>        {</td></tr>
+      <tr><td>25</td><td>            <span class="c2h-comment">// Abbiamo avuto problemi durante la lettura.</span></td></tr>
+      <tr><td>26</td><td>            <span class="c2h-comment">// Chiudiamo la connessione e torniamo al passo 1.</span></td></tr>
+      <tr><td>27</td><td>            <span class="c2h-identifier c2h-fcallname">close</span>(<span class="c2h-identifier">cfd</span>);</td></tr>
+      <tr><td>28</td><td>            <span class="c2h-kword c2h-kword-continue">continue</span>;</td></tr>
+      <tr><td>29</td><td>        }</td></tr>
+      <tr><td>30</td><td></td></tr>
+      <tr><td>31</td><td>    <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier">n</span> <span class="c2h-operator">==</span> <span class="c2h-val-int">0</span>)</td></tr>
+      <tr><td>32</td><td>        {</td></tr>
+      <tr><td>33</td><td>            <span class="c2h-comment">// Il client si è disconnesso prima di ricevere la </span></td></tr>
+      <tr><td>34</td><td>            <span class="c2h-comment">// risposta.</span></td></tr>
+      <tr><td>35</td><td>            <span class="c2h-comment">// Chiudiamo la connessione e torniamo al passo 1.</span></td></tr>
+      <tr><td>36</td><td>            <span class="c2h-identifier c2h-fcallname">close</span>(<span class="c2h-identifier">cfd</span>);</td></tr>
+      <tr><td>37</td><td>            <span class="c2h-kword c2h-kword-continue">continue</span>;</td></tr>
+      <tr><td>38</td><td>        }</td></tr>
+      <tr><td>39</td><td></td></tr>
+      <tr><td>40</td><td>    <span class="c2h-comment">// Ok, abbiamo letto [n] byte. Se [n] è pari alla dimensione</span></td></tr>
+      <tr><td>41</td><td>    <span class="c2h-comment">// del buffer (quindi è più lunga del massimo, cioè la dimensione</span></td></tr>
+      <tr><td>42</td><td>    <span class="c2h-comment">// del buffer meno 1), allora dobbiamo comunicare al client</span></td></tr>
+      <tr><td>43</td><td>    <span class="c2h-comment">// l'errore. Questo però lo facciamo nella prossima fase.</span></td></tr>
+      <tr><td>44</td><td>}</td></tr>
+      <tr><td>45</td><td></td></tr>
+      <tr><td>46</td><td><span class="c2h-comment">//   3. Rispondere.</span></td></tr>
+      <tr><td>47</td><td></td></tr>
+      <tr><td>48</td><td><span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier">n</span> <span class="c2h-operator">==</span> <span class="c2h-kword c2h-kword-sizeof">sizeof</span>(<span class="c2h-identifier">buffer</span>))</td></tr>
+      <tr><td>49</td><td>    {</td></tr>
+      <tr><td>50</td><td>        <span class="c2h-comment">// Il client ha mandato una richiesta troppo grande.</span></td></tr>
+      <tr><td>51</td><td>        ..</td></tr>
+      <tr><td>52</td><td>    }</td></tr>
+      <tr><td>53</td><td><span class="c2h-kword c2h-kword-else">else</span></td></tr>
+      <tr><td>54</td><td>    {</td></tr>
+      <tr><td>55</td><td>        <span class="c2h-comment">// Il client ha inviato la quantità giusta di dati</span></td></tr>
+      <tr><td>56</td><td>        <span class="c2h-comment">// perchè il 256-esimo byte non è stato usato. Per</span></td></tr>
+      <tr><td>57</td><td>        <span class="c2h-comment">// questo motivo sappiamo di poter mettere uno zero</span></td></tr>
+      <tr><td>58</td><td>        <span class="c2h-comment">// alla fine dei contenuti del buffer per renderlo </span></td></tr>
+      <tr><td>59</td><td>        <span class="c2h-comment">// una valida stringa C.</span></td></tr>
+      <tr><td>60</td><td></td></tr>
+      <tr><td>61</td><td>        <span class="c2h-identifier">buffer</span>[<span class="c2h-identifier">n</span>] <span class="c2h-operator">=</span> <span class="c2h-val-char">'\0'</span>;</td></tr>
+      <tr><td>62</td><td></td></tr>
+      <tr><td>63</td><td>        <span class="c2h-comment">// Se non avessimo deciso di aggiungere un byte in</span></td></tr>
+      <tr><td>64</td><td>        <span class="c2h-comment">// più al buffer, allora nel caso in cui tutto il</span></td></tr>
+      <tr><td>65</td><td>        <span class="c2h-comment">// buffer fosse usato non avremmo avuto lo spazio</span></td></tr>
+      <tr><td>66</td><td>        <span class="c2h-comment">// per uno zero finale.</span></td></tr>
+      <tr><td>67</td><td></td></tr>
+      <tr><td>68</td><td>        <span class="c2h-comment">// Il buffer deve contenere una cosa del tipo "GET xyz",</span></td></tr>
+      <tr><td>69</td><td>        <span class="c2h-comment">// dove "xyz" è una qualsiasi stringa di caratteri</span></td></tr>
+      <tr><td>70</td><td>        <span class="c2h-comment">// non contenente spazi.</span></td></tr>
+      <tr><td>71</td><td></td></tr>
+      <tr><td>72</td><td>        <span class="c2h-comment">// Notiamo che nel buffer c'è almeno un carattere.</span></td></tr>
+      <tr><td>73</td><td>        <span class="c2h-identifier c2h-fcallname">assert</span>(<span class="c2h-identifier">n</span> <span class="c2h-operator">&gt;</span> <span class="c2h-val-int">0</span>);</td></tr>
+      <tr><td>74</td><td></td></tr>
+      <tr><td>75</td><td>        <span class="c2h-comment">// Sappiamo che la richiesta, per essere valida, deve</span></td></tr>
+      <tr><td>76</td><td>        <span class="c2h-comment">// contenere come minimo 5 caratteri, perchè "GET" e</span></td></tr>
+      <tr><td>77</td><td>        <span class="c2h-comment">// lo spazio successivo sono 4, e il nome del file</span></td></tr>
+      <tr><td>78</td><td>        <span class="c2h-comment">// deve avere come minimo dimensione 1.</span></td></tr>
+      <tr><td>79</td><td></td></tr>
+      <tr><td>80</td><td>        <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier">n</span> <span class="c2h-operator">&lt;</span> <span class="c2h-val-int">5</span>)</td></tr>
+      <tr><td>81</td><td>            {</td></tr>
+      <tr><td>82</td><td>                <span class="c2h-comment">// Richiesta non valida</span></td></tr>
+      <tr><td>83</td><td>                ..</td></tr>
+      <tr><td>84</td><td>            }</td></tr>
+      <tr><td>85</td><td></td></tr>
+      <tr><td>86</td><td>        <span class="c2h-comment">// Ora possiamo assicurarci che cominci con "GET"</span></td></tr>
+      <tr><td>87</td><td>        <span class="c2h-comment">// seguito da uno spazio.</span></td></tr>
+      <tr><td>88</td><td></td></tr>
+      <tr><td>89</td><td>        <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier">buffer</span>[<span class="c2h-val-int">0</span>] <span class="c2h-operator">!=</span> <span class="c2h-val-char">'G'</span> <span class="c2h-operator">||</span> <span class="c2h-identifier">buffer</span>[<span class="c2h-val-int">1</span>] <span class="c2h-operator">!=</span> <span class="c2h-val-char">'E'</span> <span class="c2h-operator">||</span> <span class="c2h-identifier">buffer</span>[<span class="c2h-val-int">2</span>] <span class="c2h-operator">!=</span> <span class="c2h-val-char">'T'</span> <span class="c2h-operator">||</span> <span class="c2h-operator">!</span><span class="c2h-identifier c2h-fcallname">isspace</span>(<span class="c2h-identifier">buffer</span>[<span class="c2h-val-int">3</span>]))</td></tr>
+      <tr><td>90</td><td>            {</td></tr>
+      <tr><td>91</td><td>                <span class="c2h-comment">// Richiesta non valida</span></td></tr>
+      <tr><td>92</td><td>                ..</td></tr>
+      <tr><td>93</td><td>            }</td></tr>
+      <tr><td>94</td><td></td></tr>
+      <tr><td>95</td><td>        <span class="c2h-comment">// Dalla posizione 4 in poi ci aspettiamo una sequenza</span></td></tr>
+      <tr><td>96</td><td>        <span class="c2h-comment">// di caratteri fino a quando non raggiungiamo uno spazio</span></td></tr>
+      <tr><td>97</td><td>        <span class="c2h-comment">// o la fine del buffer.</span></td></tr>
+      <tr><td>98</td><td></td></tr>
+      <tr><td>99</td><td>        <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">indice_inizio_percorso</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">4</span>;</td></tr>
+      <tr><td>100</td><td></td></tr>
+      <tr><td>101</td><td>        <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">4</span>;</td></tr>
+      <tr><td>102</td><td>        <span class="c2h-kword c2h-kword-while">while</span>(<span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">n</span> <span class="c2h-operator">&&</span> <span class="c2h-operator">!</span><span class="c2h-identifier c2h-fcallname">isspace</span>(<span class="c2h-identifier">buffer</span>[<span class="c2h-identifier">i</span>]))</td></tr>
+      <tr><td>103</td><td>            <span class="c2h-identifier">i</span> <span class="c2h-operator">+=</span> <span class="c2h-val-int">1</span>;</td></tr>
+      <tr><td>104</td><td></td></tr>
+      <tr><td>105</td><td>        <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">indice_fine_percorso</span> <span class="c2h-operator">=</span> <span class="c2h-identifier">i</span>;</td></tr>
+      <tr><td>106</td><td></td></tr>
+      <tr><td>107</td><td>        <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">n</span>)</td></tr>
+      <tr><td>108</td><td>            {</td></tr>
+      <tr><td>109</td><td>                <span class="c2h-identifier c2h-fcallname">assert</span>();</td></tr>
+      <tr><td>110</td><td>                ..</td></tr>
+      <tr><td>111</td><td>            }</td></tr>
+      <tr><td>112</td><td></td></tr>
+      <tr><td>113</td><td>        <span class="c2h-kword c2h-kword-char">char</span> <span class="c2h-operator">*</span><span class="c2h-identifier">file</span> <span class="c2h-operator">=</span> <span class="c2h-identifier">buffer</span> <span class="c2h-operator">+</span> <span class="c2h-val-int">4</span>;</td></tr>
+      <tr><td>114</td><td></td></tr>
+      <tr><td>115</td><td>    }    </td></tr>
+      <tr><td>116</td><td>        </td></tr>
+    </table>
+  </div>
+</div>
 
-	// Leggiamo nel buffer il contenuto della richiesta.
-	n = read(cfd, buffer, sizeof(buffer));
-
-	// Se un errore è avvenuto, allora [n] è negativo. Se il client si è
-	// disconnesso prima di inviare qualcosa, allora [n] è zero. Altrimenti
-	// [n] è pari al numero di byte copiati nel buffer. Se il buffer è
-	// completamente riempito, è possibile che il client abbia inviato più
-	// dati di quelli che potevano entrare nel buffer. Questi dati in più
-	// avremmo potuti leggerli chiamando una seconda volta [read]. Noi però
-	// non siamo interessati a farlo.
-
-	if(n < 0)
-		{
-			// Abbiamo avuto problemi durante la lettura.
-			// Chiudiamo la connessione e torniamo al passo 1.
-			close(cfd);
-			continue;
-		}
-
-	if(n == 0)
-		{
-			// Il client si è disconnesso prima di ricevere la 
-			// risposta.
-			// Chiudiamo la connessione e torniamo al passo 1.
-			close(cfd);
-			continue;
-		}
-
-	// Ok, abbiamo letto [n] byte. Se [n] è pari alla dimensione
-	// del buffer (quindi è più lunga del massimo, cioè la dimensione
-	// del buffer meno 1), allora dobbiamo comunicare al client
-	// l'errore. Questo però lo facciamo nella prossima fase.
-}
-
-//   3. Rispondere.
-
-if(n == sizeof(buffer))
-	{
-		// Il client ha mandato una richiesta troppo grande.
-		..
-	}
-else
-	{
-		// Il client ha inviato la quantità giusta di dati
-		// perchè il 256-esimo byte non è stato usato. Per
-		// questo motivo sappiamo di poter mettere uno zero
-		// alla fine dei contenuti del buffer per renderlo 
-		// una valida stringa C.
-
-		buffer[n] = '\0';
-
-		// Se non avessimo deciso di aggiungere un byte in
-		// più al buffer, allora nel caso in cui tutto il
-		// buffer fosse usato non avremmo avuto lo spazio
-		// per uno zero finale.
-
-		// Il buffer deve contenere una cosa del tipo "GET xyz",
-		// dove "xyz" è una qualsiasi stringa di caratteri
-		// non contenente spazi.
-
-		// Notiamo che nel buffer c'è almeno un carattere.
-		assert(n > 0);
-
-		// Sappiamo che la richiesta, per essere valida, deve
-		// contenere come minimo 5 caratteri, perchè "GET" e
-		// lo spazio successivo sono 4, e il nome del file
-		// deve avere come minimo dimensione 1.
-
-		if(n < 5)
-			{
-				// Richiesta non valida
-				..
-			}
-
-		// Ora possiamo assicurarci che cominci con "GET"
-		// seguito da uno spazio.
-
-		if(buffer[0] != 'G' || buffer[1] != 'E' || buffer[2] != 'T' || !isspace(buffer[3]))
-			{
-				// Richiesta non valida
-				..
-			}
-
-		// Dalla posizione 4 in poi ci aspettiamo una sequenza
-		// di caratteri fino a quando non raggiungiamo uno spazio
-		// o la fine del buffer.
-
-		int indice_inizio_percorso = 4;
-
-		int i = 4;
-		while(i < n && !isspace(buffer[i]))
-			i += 1;
-
-		int indice_fine_percorso = i;
-
-		if(i < n)
-			{
-				assert();
-				..
-			}
-
-		char *file = buffer + 4;
-
-	}</textarea>
 	
 		<script src="../scripts.js"></script>
 	</body>

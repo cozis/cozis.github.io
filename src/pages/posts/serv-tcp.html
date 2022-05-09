@@ -1,0 +1,862 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="../style.css" media="screen" />
+		<title>Cozis - Scriviamo un server TCP in C!</title>
+	</head>
+	<body>
+		<a href="../index.html">Indice</a>
+
+		<h1>1. Scriviamo un server TCP in C!</h1>
+		
+		<p>
+			In questa guida intendo mostrare come si può creare un server TCP con il relativo 
+			client in C su Linux. Potrebbe sembrare inusuale il modo in cui sono accentuati
+			alcuni argomenti rispetto ad altri. Il motivo di questo fatto è che il fine di 
+			questa guida è di gettare le basi per poi costruire un web server.
+		<p>
+		
+		<p>
+			Questa guida impallidisce al confronto con altre reperibili 
+			su internet, ma per completezza, relativamente ad altre guide di questo blog (come 
+			quelle sui web server), ho deciso di scriverla comunque. Anche perchè, nonostante 
+			la quantità di contenuti reperibili sia infinita, sono per lo più in inglese.
+		</p>
+
+		<p>
+			I requisiti necessari per seguire questa guida sono:
+		</p>
+		
+		<ul>
+			<li>Un po' di esperienza con il linguaggio C.</li>
+			<li>Un sistema Linux.</li>
+		</ul>
+		
+		<p>
+			Nonostante questa guida assuma un sistema Linux, la maggior parte delle considerazioni
+			vale anche per altre piattaforme. In futuro potrei estendere questa guida ad altre 
+			piattaforme, vedremo!
+ 		</p>
+
+		<p><b>NOTA</b>: Questo articolo non è ancora completo!</p>
+
+		<h2>Sommario</h2>
+		<ol>
+			<li>Scriviamo un server TCP in C!</li>
+			<li>Teoria!</li>
+			<ol>
+				<li>Cos'è un server? Cos'è TCP? Cos'è un server TCP?!</li>
+			</ol>
+			<li>Programmiamo!</li>
+			<ol>
+				<li>I socket</li>
+				<li>Il binding</li>
+				<li>Listening</li>
+				<li><code>accept</code>, <code>send</code> e <code>recv</code></li>
+				<li>Un esempio di business logic.</li>
+			</ol>
+			<li>Riferimenti</li>
+			<li>Contenuti correlati</li>
+		</ol>
+
+		<h2>2. Teoria!</h2>
+
+		<h3>2.1. Cos'è un server? Cos'è TCP? Cos'è un server TCP?!</h3>
+
+		<p>
+			I computer possono comunicare fra loro inviandosi arbitrarie sequenze di byte. 
+			Su due piedi uno penserebbe che questi canali di comunicazione possono avvenire 
+			quando i due computer contemporaneamente scelgono di interagire. Pensandoci 
+			attentamente però, la comunicazione può avvenire solo quando uno dei due nodi 
+			sceglie di cominciarla con l'altro, unidirezionalmente. Uno dei due deve essere 
+			sempre in attesa di connessioni. Del resto è così anche con i telefoni cellulare. 
+			Ciascuno di noi è perennemente in attesa di chiamate (o almeno quando il telefono 
+			è acceso) in modo tale che nell'esatto momento in 
+			cui qualcuno vuole chiamarci, anche noi siamo pronti per la comunicazione. Se 
+			avessimo il cellulare spento accetto quando vogliamo ricevere una chiamata, 
+			e gli altri ci provassero a chiamare quando vogliono interagire, probabilmente 
+			non riusciremmo mai a parlare! Per questo motivo uno dei computer deve essere 
+			sempre in ascolto per connessioni mentre è l'altro che decide quando cominciare 
+			la comunicazione. In questo contesto, il computer che è sempre pronto ad interagire 
+			è chiamato <b>server</b>, mentre l'altro è chiamato <b>client</b>. Un esempio di 
+			questa architettura sono il browser e le macchine che mantengono i siti web, dove
+			i primi sono i client ed i secondi i server. I server che mantengono i siti sono
+			sempre in ascolto per connessioni. Quando vogliamo accedere ad un sito web il
+			browser lo chiede al server che essendo sempre in ascolto può subito rispondere
+			con i contenuti che cerchiamo.
+		</p>
+
+		<p>
+			Per far avvenire questa comunicazione, i computer devono essere collegati fisicamente 
+			con dei cavi. Una volta collegati, a ciascun computer è associato un identificativo 
+			univoco (noto come indirizzo IP) che può essere usato per contattarlo. A questo punto 
+			è necessario fare un'ulteriore considerazione. In effetti, quando diciamo che due 
+			computer stanno comunicando, in realtà sono due programmi su questi computer che 
+			stanno comunicando. Ma su un computer possono girare più di un programma, quindi 
+			un identificativo all'intero computer non basta. È necessario introdurre un identificativo 
+			aggiuntivo per i vari programmi all'interno di ciascun computer che ha a sua volta 
+			un identificativo. L'identificativo del programma è detto porta, mentre quello del 
+			computer è detto indirizzo. Un programma, per avviare la comunicazione con un programma 
+			remoto, deve conoscere la coppia (indirizzo, porta) di quest'ultimo. Usualmente per 
+			spiegare quest'idea si usa la metafora secondo la quale la rete internet è una città, 
+			dove ciascun palazzo è un computer ed ogni camera del palazzo è un programma. Per 
+			andare da casa nostra a quella di un nostro amico, abbiamo bisogno di indirizzo e 
+			numero di porta.
+		</p>
+
+		<p>
+			<font color="red">Come è fatto un indirizzo? Ed una porta? E cosa sono le "reti" in generale?</font>
+		</p>
+
+		<p>
+			<font color="red">Cosa sono gli IPv4 ed IPv6?</font>
+		</p>
+
+		<p>Il TCP è uno dei protocolli che permette la comunicazione di questi byte. Questa è una descrizione molto astratta, ma per fortuna ci basta sapere questo dato che il sistema operativo si occupa dei dettagli per noi. Esistono altri protocolli, come ad esempio l'UDP, ma al momento non ci interessano.</p>
+
+		<p>Quindi, finalmente, <b>un server TCP è un programma che ascolta su una determinata porta per connessioni TCP</b> di altri computer.</p>
+
+		<h2>3. Programmiamo!</h2>
+		
+		<p>
+			Un programma che implementa un server TCP deve fare le seguenti cose:
+		</p>
+
+			<ol>
+				<li>Creare un socket</li>
+				<li>Associare il socket ad un indirizzo ed una porta</li>
+				<li>Cominciare ad ascoltare per richieste</li>
+				<li>Leggere le richieste</li>
+				<li>Inviare risposte</li>
+			</ol>
+
+		<p>
+			Quindi, in prima approssimazione, avremo una cosa del genere (in pseudo-codice):
+		</p>
+
+		<div id="pseudo-codice-server-tcp">
+			<c2html>
+socket = create_TCP_socket()
+
+set_address_and_port(socket, address, port)
+		
+listen(socket)
+		
+while true
+	{
+		connection = accept(socket)
+
+		request = read(connection)
+
+		response = build_response(request)
+
+		send(connection, response)
+	}
+			</c2html>
+		</div>
+		<h3>3.1. I socket</h3>
+		<p>
+			Hei hei hei! Aspetta un attimo!! Ed ora cos'è 'sto socket?! Vi starete chiedendo..
+		</p>
+		<p>
+			I socket sono un'astrazione del sistema operativo che permette ai programmatori di non dover pensare ai dettagli implementativi dei meccanismi che permettono la comunicazione fra computer. Invece di pensare a driver della scheda di rete, buffer di input e buffer di output, ci basta pensare "ok, ora apriamo un socket!".
+		</p>
+		<p>Su Linux, un socket si crea usando la funzione <code>socket</code> definita in <code>sys/socket.h</code></p>
+
+		<c2html>
+#include <sys/socket.h>
+
+int socket(int domain, int type, int protocol);
+		</c2html>
+
+		<p>
+			L'argomento <code>domain</code> fa riferimento al dominio del socket. Questo può essere <code>AF_INET</code> per la comunicazione fra due computer diversi, oppure <code>AF_UNIX</code> per la comunicazione fra due processi di uno stesso computer. L'argomento <code>type</code> fa riferimento al tipo del socket. Qui è dove specifichiamo di volere un socket TCP fornendo il valore <code>SOCK_STREAM</code>. Infine, l'argomento <code>protocol</code> onestamente non ci interessa. Possiamo fornire un bel 0. Questa funzione ritorna l'identificativo del nostro socket. Se invece la funzione per qualche motivo fallisce, un valore negativo è ritornato. Questo identificativo ci servirà per affettuare operazioni sul socket come leggere e scrivere byte dalla connessione. Quando il socket non ci serve più, possiamo chiuderlo chiamando la funzione <code>close</code>
+		</p>
+
+		<p>La prima parte del nostro server TCP quindi diventa:</p>
+
+		<c2html>
+#include <sys/socket.h>
+
+int main()
+{
+	// Apriamo il socket.
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(fd < 0)
+		{
+			fprintf(stderr, "La creazione del socket è fallita!\n");
+			return -1;
+		}
+
+	// ..facciamo cose col socket..
+
+	// Ed ora lo chiudiamo.
+	close(fd);
+
+	return 0;
+}
+		</c2html>
+
+		<p>
+			<b>NOTA</b>: Spesso si usa <code>fd</code> come nome della variabile del socket (in generale degli identificativi relativi a strutture dati interne al kernel di Linux) perchè sta per <i>File Descriptor</i>. In Linux, ogni cosa è vista come un file dal quale si può leggere e scrivere, anche i socket.
+		</p>
+
+		<h3>3.2. Il binding</h3>
+
+		<p>A questo punto dobbiamo effettuare quello che si chiama <i>binding</i>, cioè l'associazione del socket ad un indirizzo ed una porta. Potrebbe sorgere spontanea la domanda "perchè devo dire al socket qual è il mio indirizzo, se il computer dovrebbe già conoscerlo?". La risposta a questa domanda è che i computer possono avere più indirizzi allo stesso tempo (probabilmente non è il nostro caso però!). La funzione che ci permette di fare il binding è:</p>
+
+		<c2html>
+#include <sys/socket.h>
+
+int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+		</c2html>
+	
+		<p>
+			Alle persone non abituate alle stranezze del C questa funzione potrebbe sembrare un po' strana.. (Ho visto cose.. che voi umani.. non potete neanche immaginare). Il modo in cui si usa questa funzione è definendo una struttura del tipo <code>struct sockaddr_in</code> (definita in <code>netinet/in.h</code>), riempirne i valori e poi passarne il puntatore a <code>bind</code>. Ecco la stranezza però: il puntatore che <code>bind</code> si aspetta, può essere di altri tipi oltre che a <code>struct sockaddr_in</code> (come ad esempio <code>struct sockaddr_un</code> quando la connessione è fra processi locali). Per questo motivo la funzione <code>bind</code> definisce il tipo <code>struct sockaddr</code> che è un tipo opaco che rappresenta il fatto che uno dei tipi <code>struct sockaddr_*</code> deve essere fornito.
+		</p>
+
+		<p>
+			Il primo argomento <code>sockfd</code> è il descrittore del nostro socket (quello che ci ha dato <code>socket</code>), il secondo è il puntatore alla struttura <code>struct sockaddr_in</code> che contiene indirizzo e porta, mentre l'ultimo argomento è la dimensione della struttura della quale abbiamo fornito il puntatore come secondo argomento (quindi <code>sizeof(struct sockaddr_in)</code>, nel nostro caso).
+		</p>
+
+		<p>La struttura che mantiene indirizzo e porta è fatta così:</p>
+
+		<c2html>
+#include <netinet/in.h>
+
+struct sockaddr_in {
+    short            sin_family;
+    unsigned short   sin_port;
+    struct in_addr   sin_addr;
+    char             sin_zero[8];
+};
+
+struct in_addr {
+    unsigned long s_addr;
+};
+		</c2html>
+
+		<p>Il campo <code>sin_family</code> deve sempre mantenere il valore <code>AF_INET</code>, il campo <code>sin_port</code> mantiene il valore della nostra porta (un numero compreso fra 0 e 2^16-1 = 65535) ed infine <code>sin_addr</code> contiene il nostro indirizzo (un numero compreso fra 0 e 2^32-1). Il campo <code>sin_zero</code> non ci interessa e ci limitiamo a riempirlo di zeri. Il valore di bind è negativo se ha fallito ed è 0 quanto ha funzionato.</p>
+
+		<p>C'è solo un ultimo dettaglio da chiarire prima di poter fare il binding. I valori di porta ed indirizzo non possiamo assegnarli come se niente fosse. Esiste una cosa chiamata <code>network byte ordering</code>, che è legata al <a href="endianess.html">modo in cui la CPU ordina i byte in memoria</a> (<i>little endian</i> e <i>big endian</i>). Per risolvere questo problema si fissa come convenzione l'ordinamento di byte della rete e tutti i computer che vi partecipano devono adattarsi. Questo convenzione è detta <i>network byte order</i>. <b>Il protocollo TCP definisce l'ordinamento byte della rete come <i>big endian</i></b>.</p>
+
+		<p>I campi della porta <code>sin_port</code> e indirizzo <code>sin_addr</code> devono essere espressi rispetto all'ordinamento di byte della rete, non quello locale. Per assicurarci che i valori che forniamo siano codificati nel modo giusto usiamo le funzioni</p>
+
+		<c2html>
+#include <arpa/inet.h>
+
+uint16_t htons(uint16_t hostshort);
+uint32_t htonl(uint32_t hostlong);
+		</c2html>
+		
+		<p>Se queste funzioni sono eseguite su sistemi little endian, allora convertono gli argomenti a big endian. Se sono eseguite su sistemi big endian, allora ritornano l'argomento invariato. In realtà, come vedremo a breve, faremo uso solo di <code>htons</code>, dato che non avremo bisogno di specificare esplicitamente l'indirizzo.</p>
+
+		<p>Invece di specificare l'indirizzo, usiamo il valore <code>INADDR_ANY</code> (definito in <code><font color="red">???</font></code>). Questo valore comunica al sistema operativo che siamo interessati ad eseguire un binding del socket su ogni possibile interfaccia di rete disponibile (cioè ogni possibile indirizzo). FINALMENTE possiamo fare questo benedetto bind!!!!</p>
+
+		<p>Il codice quindi diventa:</p>
+
+		<c2html>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
+int main()
+{
+	// Apriamo il socket.
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(fd < 0)
+		{
+			fprintf(stderr, "La creazione del socket è fallita!\n");
+			return -1;
+		}
+
+	int port = 8080;
+
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(struct sockaddr_in));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = INADDR_ANY;
+
+	if(bind(fd, (struct sockaddr*) &addr, sizeof(struct sockaddr_in)))
+		{
+			fprintf(stderr, "Il binding è fallito..\n");
+
+			close(fd);
+			return -1;
+		}
+
+	// ..facciamo cose col socket..
+
+	// Ed ora lo chiudiamo.
+	close(fd);
+
+	return 0;
+}
+		</c2html>
+		<p>
+			<font color="red">Perchè la porta 8080?? Posso scegliere anche io una porta?? Quali porte posso scegliere?</font>
+		</p>
+		<p>Ci siamo quasi!!!</p>
+
+		<h3>3.3. Listening</h3>
+		
+		<p>A questo punto il socket è stato configurato, quindi possiamo cominciare ad ascolatare le connessioni. La funzione che ci permette di farlo è</p>	
+
+		<c2html>
+#include <sys/socket.h>
+
+int listen(int sockfd, int backlog);
+		</c2html>
+		
+		<p>Il valore di <code>sockfd</code> è il descrittore che ci ha dato la prima chiamata a <code>socket</code>, mentre il secondo comunica la dimensione della <a href="https://it.wikipedia.org/wiki/Coda_(informatica)" target="_blank">coda</a> di connessioni non ancora accettate. Ad esempio, se fissiamo <code>backlog</code> a 5 ed arrivano 6 richieste prima che ne accettiamo qualcuna, allora la 6 è rifiutata. Un numero compreso fra 1 e 128 dovrebbe andar bene. Se la funziona ha un esito positivo, il valore zero è ritornato, altrimenti ritorna un intero negativo.</p>
+
+		<c2html>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
+int main()
+{
+	// Apriamo il socket.
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(fd < 0)
+		{
+			fprintf(stderr, "La creazione del socket è fallita!\n");
+			return -1;
+		}
+
+	int port = 8080;
+
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(struct sockaddr_in));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = INADDR_ANY;
+
+	if(bind(fd, (struct sockaddr*) &addr, sizeof(struct sockaddr_in)))
+		{
+			fprintf(stderr, "Il binding è fallito..\n");
+
+			close(fd);
+			return -1;
+		}
+
+	if(listen(fd, 32))
+		{
+			fprintf(stderr, "Non sono riuscito ad ascoltaree\n");
+
+			close(fd);
+			return -1;
+		}
+
+	// ..facciamo cose col socket..
+
+	// Ed ora lo chiudiamo.
+	close(fd);
+
+	return 0;
+}
+		</c2html>
+		<p>Sta prendendo forma!</p>
+
+		<h3>3.4. <code>accept</code>, <code>send</code> e <code>recv</code>.</h3>
+
+		<p>Ormai abbiamo quasi fatto! Siamo quasi riusciti a completare questa titanica impresa. A questo punto la nostra applicazione sta ascoltando per le nuove richieste, che si accumulano sulla <a href="https://it.wikipedia.org/wiki/Coda_(informatica)" target="_blank">coda</a> del socket. La nostra applicazione deve accettarle e gestirle. Come abbiamo accennato <a href="#pseudo-codice-server-tcp" target="_blank">all'inizio</a>, a questo punto il nostro server deve cominciare un ciclo di accettazione-lettura della richiesta-invio della risposta. Le funzioni che ci permettono di farlo sono, rispettivamente, <code>accept</code>, <code>send</code> e <code>recv</code>.</p>
+
+		<p>La funzione <code>accept</code>, legge dalla coda associata al socket una connessione e la ritorna nella forma di un nuovo socket. Questo nuovo socket lo useremo per leggere e scrivere byte da e verso il client. Quando la comunicazione è conclusa, dobbiamo chiamare <code>close</code> su questo socket. Poi, se ci interessa, possiamo accettare una nuova connessione dal socket iniziale. Questa funzione è definita come:</p>
+
+		<c2html>
+#include <sys/socket.h>
+
+int accept(int sockfd, struct sockaddr *restrict addr, socklen_t *restrict addrlen);
+		</c2html>
+		
+		<p>Come sempre, <code>sockfd</code> è il descrittre sul quale abbiamo chiamato <code>listen</code>. I due argomenti <code>addr</code> e <code>addrlen</code> sono, rispettivamente, l'indirizzo di un buffer <code>struct sockaddr_in</code> dove questa funzione può darci l'indirizzo del client e il puntatore ad una variabile contenente la dimensione del buffer che contiene l'indirizzo (quindi una variabile che contiene il valore <code>sizeof(struct sockaddr_in)</code>). In caso di successo la funzion ritorna il descrittore del socket appena accettato, nel buffer riferito da <code>addr</code> viene inserito l'indirizzo del client e nella variabile riferita da <code>addrlen</code> quanti byte di <code>addr</code> sono stati usati (lo so, è un po' strano. Prentedela per quel che è!). In caso di errore invece la funzione ritorna un numero negativo.</p>
+
+		<p>Una volta ottenuto il socket relativo al client col quale vogliamo comunicare, possiamo ricevere ed inviare arbitrarie sequenze di byte. La funzione <code>recv</code></p>
+
+		<c2html>
+#include <sys/socket.h>
+
+ssize_t recv(int sockfd, void *buf, size_t len, int flags);
+		</c2html>
+	
+		<p>prende come argomenti il socket della connessione <code>sockfd</code>, il riferimento <code>buf</code> (e la dimensione <code>len</code>) di un buffer e copia i byte ricevuti nel buffer. È possibile che siano disponibili meno byte di quanto spazio ci sia nel buffer, in tal caso il buffer è parzialmente riempito. Per questo la funzione ritorna il numero di byte effettivamente scritti nel buffer. Se invece avviene un errore, un numero negativo è ritornato. È anche possibile che il client interrompa la connessione mentre il nostro server aspetta messaggi con <code>recv</code>. In tal caso viene ritornato il valore 0. L'argomento <code>flags</code> ci permette di configurare il modo in cui vogliamo avvenga la ricezione. A noi però non interessa, quindi specifichiamo un bello 0.</p>
+
+		<p>Analogamente, per inviare messaggi usiamo la funzione <code>send</code></p>
+
+		<c2html>
+#include <sys/socket.h>
+
+ssize_t send(int sockfd, const void *buf, size_t len, int flags);
+		</c2html>
+	
+		<p>che ha la stessa interfaccia di <code>recv</code>, ma invece di scrivere dal buffer, ci legge. Quindi noi riempiamo un buffer con la risposta, chiamiamo <code>send</code> e quei byte arriveranno magicamente al client. Analogamente, il valore di ritorno è il numero di byte effettivamente inviati. È possibile che il sistema operativo invii solo parte del buffer. In tal caso possiamo chiamare <code>send</code> un'altra volta sulla parte rimanente.</p>
+
+		<p>C'è da specificare che però le funzioni <code>send</code> e <code>recv</code> non sono particolari del server o del client. Dove il server fa <code>send</code>, il client farà <code>recv</code> e viceversa.</p>
+
+		<p>Aggiungiamo le ultime cose che abbiamo imparato al nostro server!</p>
+
+		<c2html>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+
+int main()
+{
+	// Apriamo il socket.
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(fd < 0)
+		{
+			fprintf(stderr, "La creazione del socket è fallita!\n");
+			return -1;
+		}
+
+	int port = 8080;
+
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(struct sockaddr_in));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = INADDR_ANY;
+
+	if(bind(fd, (struct sockaddr*) &addr, sizeof(struct sockaddr_in)))
+		{
+			fprintf(stderr, "Il binding è fallito..\n");
+
+			close(fd);
+			return -1;
+		}
+
+	if(listen(fd, 32))
+		{
+			fprintf(stderr, "Non sono riuscito ad ascoltaree\n");
+
+			close(fd);
+			return -1;
+		}
+
+	while(1)
+		{
+			// Accetta una connessione.
+
+			struct sockaddr_in client_addr;
+			socklen_t          client_addr_size = sizeof(client_addr);
+			int conn_fd = accept(fd, (struct sockaddr*) &client_addr, &client_addr_size);
+
+			if(conn_fd < 0)
+				{
+					// Per qualche motivo la chiamata ad [accept] è fallita.
+					// Saltiamo il resto del loop e torniamo dinuovo su [accept].
+					continue;
+				}
+
+			char request[512], response[512];
+
+			// Ricevi la richiesta.
+
+			ssize_t request_size = recv(conn_fd, request, sizeof(request), 0);
+
+			if(request_size <= 0)
+				{
+					// La lettura ha fallito oppure il client si è disconnesso.
+					// In ogni caso chiudiamo il socket ed accettiamo una nuova
+					// connessione.
+					close(conn_fd);
+					continue;
+				}
+
+			// Data la richiesta, genera la rispettiva risposta.
+			int response_size = make_response(request, request_size, response, sizeof(response));
+
+			// Ora invia la risposta.
+
+			ssize_t sent_bytes = 0;
+			do
+				{
+
+					ssize_t temp = send(conn_fd, response, response_size, 0);
+
+					if(temp < 0)
+						{
+							// Non sono riuscito ad inviare i byte. Chiudo
+							// la connessione e ne accetto un'altra.
+							close(conn_fd);
+							continue;
+						}
+
+					sent_bytes += temp;
+				}
+			while(sent_bytes < response_size);
+
+			// Chiudi la connessione e torna ad accettarne una nuova.
+			close(conn_fd);
+		}
+
+	// Ed ora lo chiudiamo.
+	close(fd);
+
+	return 0;
+}
+		</c2html>
+		<p>
+			Il server, per quel che ci interessa, è concluso. Ora quel che manca è definire la funzione <code>make_response</code> che implementa l'effettiva logica del software.
+		</p>
+
+		<p>
+			<b>NOTA</b>: Questo server non terminerà mai naturalmente perchè non uscità mai da quel loop. Questo significa che, in effetti, la chiamata <code>close</code> finale è superflua dato che non verrà mai eseguita. Questo però non è un problema dato che il sistema operativo chiude tutti i socket per noi quando il programma termina.
+		<p>
+
+		<h3>3.5. Un esempio di business logic.</h3>
+
+		<p>Per completezza, vediamo una possibile implementazione di <code>make_response</code>. Immaginiamo di fare un sistema in cui il client produce una stringa ed il server deve trasformare tutti i caratteri nella loro versione maiuscola (se c'è), per poi inviarla indietro al client. Questo server però, accetterà solo caratteri ASCII (quindi caratteri codificati con valori compresi tra 0 e 127). Se la stringa contiene caratteri non ASCII, il server prefisserà "X" alla risposta seguita da uno spazio ed un messaggio di errore. Se invece la stringa contiene solo ASCII, il server prefisserà "O" seguito da uno spazio.</p>
+
+		<c2html>
+#include <ctype.h>
+#include <stdio.h>
+#include <assert.h>
+
+int make_response(char *request, int request_size, char *response, int response_max_size)
+{
+	// Iteriamo lungo la richieste e, se troviamo caratteri che non 
+	// sono ASCII, come risposta mangiamo un messaggio di errore.
+
+	for(int i = 0; i < request_size; i += 1)
+		{
+			if((unsigned char) request[i] > 127)
+				{
+					int n = snprintf(response, "X Il carattere %d non è ASCII!", i);
+					assert(n >= 0);
+
+					if(n > response_max_size)
+						n = response_max_size;
+
+					return n;
+				}
+		}
+
+	// Se l'esecuzione del programma arriva qui, allora la richiesta
+	// è ASCII. Assumiamo che il buffer di risposta sia almeno grande
+	// due byte, in modo da poter scrivere il "O " iniziale senza
+	// dover controllare di non andare oltre la fine del buffer.
+
+	assert(response_max_size > 1);
+
+	response[0] = 'O';
+	response[1] = ' ';
+
+	// Ora copiamo nel buffer di uscita i valori del buffer di entrata
+	// convertendoli opportunamente. Se il buffer di uscita non è abbastanza
+	// grande da ospitare l'intero messaggio, tronchiamo il messaggio
+	// di uscita senza farci troppi problemi.
+
+	for(int i = 0; i < request_size && i+2 < response_max_size; i += 1)
+		{
+			if(islower(request[i]))
+				response[i+2] = toupper(request[i]);
+			else
+				response[i+2] = request[i];
+		}
+
+	int response_size;
+
+	if(request_size + 2 > response_max_size)
+		response_size = response_max_size;
+	else
+		response_size = request_size + 2;
+
+	return response_size;
+}
+		</c2html>
+
+		<p>Finalmente, ecco il nostro server TCP</p>
+
+		<c2html>
+#include <ctype.h>
+#include <stdio.h>
+#include <assert.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+
+int make_response(char *request, int request_size, char *response, int response_max_size)
+{
+	// Iteriamo lungo la richieste e, se troviamo caratteri che non 
+	// sono ASCII, come risposta mangiamo un messaggio di errore.
+
+	for(int i = 0; i < request_size; i += 1)
+		{
+			if((unsigned char) request[i] > 127)
+				{
+					int n = snprintf(response, "X Il carattere %d non è ASCII!", i);
+					assert(n >= 0);
+
+					if(n > response_max_size)
+						n = response_max_size;
+
+					return n;
+				}
+		}
+
+	// Se l'esecuzione del programma arriva qui, allora la richiesta
+	// è ASCII. Assumiamo che il buffer di risposta sia almeno grande
+	// due byte, in modo da poter scrivere il "O " iniziale senza
+	// dover controllare di non andare oltre la fine del buffer.
+
+	assert(response_max_size > 1);
+
+	response[0] = 'O';
+	response[1] = ' ';
+
+	// Ora copiamo nel buffer di uscita i valori del buffer di entrata
+	// convertendoli opportunamente. Se il buffer di uscita non è abbastanza
+	// grande da ospitare l'intero messaggio, tronchiamo il messaggio
+	// di uscita senza farci troppi problemi.
+
+	for(int i = 0; i < request_size && i+2 < response_max_size; i += 1)
+		{
+			if(islower(request[i]))
+				response[i+2] = toupper(request[i]);
+			else
+				response[i+2] = request[i];
+		}
+
+	int response_size;
+
+	if(request_size + 2 > response_max_size)
+		response_size = response_max_size;
+	else
+		response_size = request_size + 2;
+
+	return response_size;
+}
+
+int main()
+{
+	// Apriamo il socket.
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(fd < 0)
+		{
+			fprintf(stderr, "La creazione del socket è fallita!\n");
+			return -1;
+		}
+
+	int port = 8080;
+
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(struct sockaddr_in));
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = INADDR_ANY;
+
+	if(bind(fd, (struct sockaddr*) &addr, sizeof(struct sockaddr_in)))
+		{
+			fprintf(stderr, "Il binding è fallito..\n");
+
+			close(fd);
+			return -1;
+		}
+
+	if(listen(fd, 32))
+		{
+			fprintf(stderr, "Non sono riuscito ad ascoltaree\n");
+
+			close(fd);
+			return -1;
+		}
+
+	while(1)
+		{
+			// Accetta una connessione.
+
+			struct sockaddr_in client_addr;
+			socklen_t          client_addr_size = sizeof(client_addr);
+			int conn_fd = accept(fd, (struct sockaddr*) &client_addr, &client_addr_size);
+
+			if(conn_fd < 0)
+				{
+					// Per qualche motivo la chiamata ad [accept] è fallita.
+					// Saltiamo il resto del loop e torniamo dinuovo su [accept].
+					continue;
+				}
+
+			char request[512], response[512];
+
+			// Ricevi la richiesta.
+
+			ssize_t request_size = recv(conn_fd, request, sizeof(request), 0);
+
+			if(request_size <= 0)
+				{
+					// La lettura ha fallito oppure il client si è disconnesso.
+					// In ogni caso chiudiamo il socket ed accettiamo una nuova
+					// connessione.
+					close(conn_fd);
+					continue;
+				}
+
+			// Data la richiesta, genera la rispettiva risposta.
+			int response_size = make_response(request, request_size, response, sizeof(response));
+
+			// Ora invia la risposta.
+
+			ssize_t sent_bytes = 0;
+			do
+				{
+
+					ssize_t temp = send(conn_fd, response, response_size, 0);
+
+					if(temp < 0)
+						{
+							// Non sono riuscito ad inviare i byte. Chiudo
+							// la connessione e ne accetto un'altra.
+							close(conn_fd);
+							continue;
+						}
+
+					sent_bytes += temp;
+				}
+			while(sent_bytes < response_size);
+
+			// Chiudi la connessione e torna ad accettarne una nuova.
+			close(conn_fd);
+		}
+
+	// Ed ora lo chiudiamo.
+	close(fd);
+
+	return 0;
+}
+		</c2html>
+
+		<h2>Implementiamo un client</h2>
+		<p>
+			Il programma client relativo ad un server del genere è simile. Basta creare il socket chiamando <code>socket</code> (come abbiamo fatto per il server) e poi connettersi al server usando la funzione <code>connect</code>
+		</p>
+
+		<c2html>
+#include <sys/socket.h>
+
+int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+		</c2html>
+	
+		<p>
+			dove <code>sockfd</code> è il socket che abbiamo creato, <code>addr</code> un buffer contenente l'indirizzo del server (come quello che abbiamo creato per <code>bind</code>) ed <code>addrlen</code> è la dimensione del buffer riferito da <code>addr</code> (quindi, dinuovo, nel nostro caso è <code>sizeof(struct sockaddr_in)</code>). Se la connessione ha successo, la funziona ritorna 0, altrimenti ritorna un intero negativo.
+		</p>
+
+		<p>
+			Una volta stabilita la connessione possiamo comunicare usando <code>send</code> e <code>recv</code> per poi chiudere la connessione con <code>close</code> quando abbiamo finito.
+		</p>
+
+		<p>
+			Date quel che abbiamo trattato sino ad ora dovrebbe essere facile immaginare un ipotetico client
+		</p>
+
+		<c2html>
+int main()
+{
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	if(fd < 0)
+		{
+			fprintf(stderr, "Non sono riuscito a creare il socket!\n");
+			return -1;
+		}
+
+	struct sockaddr_in addr;
+
+	if(connect(fd, &addr, sizeof(addr)))
+		{
+			fprintf(stderr, "Non sono riuscito a connettermi..\n");
+
+			close(fd);
+			return -1;
+		}
+
+	static const char *items[] = {"Francesco", "1998", "\uff"};
+	int num_items = sizeof(items) / sizeof(items[0]);
+
+	for(int i = 0; i < num_items; i += 1)
+		{
+			int length = strlen(items[i]);
+
+			// Invia la richiesta.
+			ssize_t sent_bytes = 0;
+			do
+				{
+					int temp = send(fd, items[i] + sent_bytes, length - sent_bytes, 0);
+
+					if(temp == 0)
+						{
+							..
+						}
+
+					if(temp < 0)
+						{
+							..
+						}
+
+					sent_bytes -= temp;
+				}
+			while(send_bytes < length)
+		
+			char response[512];
+
+			int n = recv(fd, response, sizeof(response));
+
+			if(n < 0)
+				{
+					..
+				}
+
+			if(n == 0)
+				{
+					..
+				}
+
+			printf("%s\n", response);
+		}
+
+	close(fd);
+	return 0;
+}
+		</c2html>
+
+		<p>
+			<font color="red">Come si può estendere per supportare l'IPv6??</font>
+		</p>
+
+		<h2>Riferimenti</h2>
+		<ul>
+			<li>
+				<a href="https://man7.org/linux/man-pages/man2/socket.2.html">
+					https://man7.org/linux/man-pages/man2/socket.2.html
+				</a>
+			</li>
+			<li>
+				<a href="https://man7.org/linux/man-pages/man2/bind.2.html">
+					https://man7.org/linux/man-pages/man2/bind.2.html
+				</a>
+			</li>
+			<li><a href="https://www.ibm.com/docs/en/zos/2.2.0?topic=functions-bind-bind-name-socket">https://www.ibm.com/docs/en/zos/2.2.0?topic=functions-bind-bind-name-socket</a></li>
+			<li><a href="https://www.gta.ufrj.br/ensino/eel878/sockets/sockaddr_inman.html">https://www.gta.ufrj.br/ensino/eel878/sockets/sockaddr_inman.html</a></li>
+			<li><a href="https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order">https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order</a></li>
+			<li><a href="https://linux.die.net/man/3/htons">https://linux.die.net/man/3/htons</a></li>
+			<li><a href="https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order">https://www.ibm.com/docs/en/zos/2.4.0?topic=hosts-network-byte-order</a></li>
+			<li><a href="https://man7.org/linux/man-pages/man2/listen.2.html">https://man7.org/linux/man-pages/man2/listen.2.html</a></li>
+			<li><a href="https://man7.org/linux/man-pages/man2/accept.2.html">https://man7.org/linux/man-pages/man2/accept.2.html</a></li>
+			<li><a href="https://man7.org/linux/man-pages/man2/recv.2.html">https://man7.org/linux/man-pages/man2/recv.2.html</a></li>
+			<li><a href="https://man7.org/linux/man-pages/man2/send.2.html">https://man7.org/linux/man-pages/man2/send.2.html</a></li>
+		</ul>
+
+		<h2>Contenuti correlati</h2>
+		<p>
+			Se ti è interessato questo articolo, potrebbero anche interessarti questi altri:
+		</p>
+		<ul>
+			<li><a href="serv-http-0-9.html">Server HTTP/0.9 in C!</a></li>
+		</ul>
+		<script src="../scripts.js"></script>
+	</body>
+</html>

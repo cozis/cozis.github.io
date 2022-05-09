@@ -27,20 +27,13 @@
         <p>
             Potremmo immaginare che <code>assert</code> sarà implementata più o meno così:
         </p>
-        <div class="c2h-code">
-  <div class="c2h-code-inner">
-    <table>
-      <tr><td>1</td><td></td></tr>
-      <tr><td>2</td><td><span class="c2h-directive">#ifndef</span> <span class="c2h-identifier">NDEBUG</span></td></tr>
-      <tr><td>3</td><td><span class="c2h-directive">#  define</span> <span class="c2h-identifier c2h-fdeclname">assert</span>(<span class="c2h-identifier">exp</span>) { <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-operator">!</span>(<span class="c2h-identifier">exp</span>)) <span class="c2h-identifier c2h-fcallname">abort</span>(); }</td></tr>
-      <tr><td>4</td><td><span class="c2h-directive">#else</span></td></tr>
-      <tr><td>5</td><td><span class="c2h-directive">#  define</span> <span class="c2h-identifier c2h-fdeclname">assert</span>(<span class="c2h-identifier">exp</span>) (<span class="c2h-identifier">exp</span>)</td></tr>
-      <tr><td>6</td><td><span class="c2h-directive">#endif</span></td></tr>
-      <tr><td>7</td><td>        </td></tr>
-    </table>
-  </div>
-</div>
-
+        <c2html>
+#ifndef NDEBUG
+#  define assert(exp) { if(!(exp)) abort(); }
+#else
+#  define assert(exp) (exp)
+#endif
+        </c2html>
         
         <h2>A cosa serve?</h2>
         <p>
@@ -64,27 +57,20 @@
             L'uso scorretto più comune che vedo è quello di usare l'assert nei casi in cui nella logica del programma potrebbe avvenire un errore, ma il programmatore non vuole scrivere il codice che lo gestisce. In tal caso il programmatore ignorante mette un assert sulla condizione di errore. Un esempio di questo caso potrebbe essere l'apertura di un file:
         </p>
 
-        <div class="c2h-code">
-  <div class="c2h-code-inner">
-    <table>
-      <tr><td>1</td><td></td></tr>
-      <tr><td>2</td><td><span class="c2h-directive">#include</span> <span class="c2h-val-str">&lt;stdio.h&gt;</span></td></tr>
-      <tr><td>3</td><td></td></tr>
-      <tr><td>4</td><td><span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier c2h-fdeclname">main</span>()</td></tr>
-      <tr><td>5</td><td>{</td></tr>
-      <tr><td>6</td><td>    <span class="c2h-identifier">FILE</span> <span class="c2h-operator">*</span><span class="c2h-identifier">fp</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">fopen</span>(<span class="c2h-val-str">"file.txt"</span>, <span class="c2h-val-str">"r"</span>);</td></tr>
-      <tr><td>7</td><td>    <span class="c2h-identifier c2h-fcallname">assert</span>(<span class="c2h-identifier">fp</span> <span class="c2h-operator">!=</span> <span class="c2h-identifier">NULL</span>);</td></tr>
-      <tr><td>8</td><td></td></tr>
-      <tr><td>9</td><td>    <span class="c2h-comment">// .. fai cose con il file ..</span></td></tr>
-      <tr><td>10</td><td></td></tr>
-      <tr><td>11</td><td>    <span class="c2h-identifier c2h-fcallname">fclose</span>(<span class="c2h-identifier">fp</span>);</td></tr>
-      <tr><td>12</td><td>    <span class="c2h-kword c2h-kword-return">return</span> <span class="c2h-val-int">0</span>;</td></tr>
-      <tr><td>13</td><td>}</td></tr>
-      <tr><td>14</td><td>        </td></tr>
-    </table>
-  </div>
-</div>
+        <c2html>
+#include <stdio.h>
 
+int main()
+{
+    FILE *fp = fopen("file.txt", "r");
+    assert(fp != NULL);
+
+    // .. fai cose con il file ..
+
+    fclose(fp);
+    return 0;
+}
+        </c2html>
         <p>
             In questo caso l'uso è scorretto perchè è possibile che il file non esista, anche se il programma è scritto correttamente ed è privo di bug. L'esistenza del file non è qualcosa sul quale il programma ha il controllo, quindi è realistico il caso in cui questo non esista ed <code>fopen</code> ritorni <code>NULL</code>. Quando poi avremo concluso lo sviluppo del nostro programma e faremo una compilazione non di debug definendo <code>NDEBUG</code>, questo controllo diventerà una nop (no operation) ed il nostro programma resterà scoperto a questa condizione di errore.
         </p>
@@ -99,27 +85,20 @@
         <p>
             Il secondo caso di uso scorretto è quello in cui una condizione di errore si verifica, ma il programma non può recuperare da questa crisi. Per questo motivo l'unica opzione è abortire l'esecuzione. Un esempio di questo caso è l'allocazione della memoria. I programmi che scriviamo comunemente tendono a non essere progettati a recuperare dal fallimento di un'allocazione, quindi se, ad esempio, <code>malloc</code> ci restituisce un bel <code>NULL</code>, non possiamo far altro che abortire. In questo caso potrebbe sembrare una buona idea usare <code>assert</code> dato che manda il programma in abort quando si verifica la falsità di un'affermazione:
         </p>
-        <div class="c2h-code">
-  <div class="c2h-code-inner">
-    <table>
-      <tr><td>1</td><td></td></tr>
-      <tr><td>2</td><td><span class="c2h-directive">#include</span> <span class="c2h-val-str">&lt;stdlib.h&gt;</span></td></tr>
-      <tr><td>3</td><td></td></tr>
-      <tr><td>4</td><td><span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier c2h-fdeclname">main</span>()</td></tr>
-      <tr><td>5</td><td>{</td></tr>
-      <tr><td>6</td><td>    <span class="c2h-kword c2h-kword-void">void</span> <span class="c2h-operator">*</span><span class="c2h-identifier">p</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">malloc</span>(<span class="c2h-val-int">1024</span>);</td></tr>
-      <tr><td>7</td><td>    <span class="c2h-identifier c2h-fcallname">assert</span>(<span class="c2h-identifier">p</span> <span class="c2h-operator">!=</span> <span class="c2h-identifier">NULL</span>);</td></tr>
-      <tr><td>8</td><td></td></tr>
-      <tr><td>9</td><td>    <span class="c2h-comment">// .. //</span></td></tr>
-      <tr><td>10</td><td></td></tr>
-      <tr><td>11</td><td>    <span class="c2h-identifier c2h-fcallname">free</span>(<span class="c2h-identifier">p</span>);</td></tr>
-      <tr><td>12</td><td>    <span class="c2h-kword c2h-kword-return">return</span> <span class="c2h-val-int">0</span>; </td></tr>
-      <tr><td>13</td><td>}</td></tr>
-      <tr><td>14</td><td>        </td></tr>
-    </table>
-  </div>
-</div>
+        <c2html>
+#include <stdlib.h>
 
+int main()
+{
+    void *p = malloc(1024);
+    assert(p != NULL);
+
+    // .. //
+
+    free(p);
+    return 0; 
+}
+        </c2html>
         <p>
             ma questo è scorretto, perchè non avere memoria è una condizione perfettamente plausibile anche per un programma corretto, quindi quando andremo a fare una compilazione non di debug definendo <code>NDEBUG</code>, questi controlli svaniranno, lasciano il programma scoperto a queste condizioni di errore.
         </p>
