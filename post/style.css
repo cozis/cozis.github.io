@@ -1,62 +1,37 @@
-body {
+main {
 	max-width: 800px;
 	margin: auto;
-	padding: 30px;
-    font-size: 16px;
-    font-family: sans-serif;
+	font-family: sans-serif;
+	font-size: 16px;
 }
 
-code {
-    font-weight: bold;
-    font-family: monospace;
-    background: #eee;
-}
-
-a {
-	color: #363d99; /* 57A3E8 */
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
+article {
+	line-height: 160%;
 }
 
 h1 {
-    text-align: center;
-}
-
-h2 {
-	border-bottom: 2px solid #eee;
-	padding-bottom: 5px;
-}
-
-h1 {
-	/*font-size: 34px;*/
-}
-
-h2 {
-	/*font-size: 26px;*/
-    width: 100%;
-	margin-top: 50px;
-}
-
-h2 .emoticon {
-    float: right;
-}
-
-h3 {
-	/*font-size: 20px;*/
-	margin-top: 40px;
+	text-align: center;
 }
 
 p {
-	line-height: 160%;
-    text-align: justify;
-    text-justify: inter-word;
+	text-align: justify;
 }
 
-li {
-	margin-bottom: 10px;
+code {
+	background: #eee;
+	color: #333;
+
+	font-family: monospace;
+}
+
+p.nota {
+	background: #e3f6ff;
+	padding: 10px;
+	color: #333;
+}
+
+p.nota code {
+	background: #C6E0EC;
 }
 
 .memory {
@@ -79,7 +54,7 @@ div.c2h-code {
     /*border-radius: 3px;*/
 
     font-family: monospace;
-    /*font-size: 16px;*/
+    font-size: 16px;
 
     color: white;
     background: hsl(210, 15%, 22%);
@@ -91,14 +66,14 @@ div.c2h-code-inner::-webkit-scrollbar {
 }
 
 div.c2h-code-inner::-webkit-scrollbar-thumb {
-    background: hsla(210, 13%, 40%, 0.7);
+background: hsla(210, 13%, 40%, 0.7);
 }
 
 div.c2h-code-inner {
 
     height: inherit;
     max-height: inherit;
-    
+	    
     overflow: auto;
     scrollbar-color: hsla(210, 13%, 40%, 0.7) transparent;
 }
@@ -109,16 +84,17 @@ div.c2h-code table {
 }
 
 div.c2h-code table td {
-    color: white;
-    padding: 0;
-    vertical-align: top;
+  color: white;
+  vertical-align: top;
 }
 
 div.c2h-code table td:first-child {
-    user-select: none;
-    text-align: right;
-    padding: 0 10px;
-    color: hsla(210, 13%, 40%, 0.7);
+
+  user-select: none;
+
+  text-align: right;
+  padding: 0 10px;
+  color: hsla(210, 13%, 40%, 0.7);
 }
 
 div.c2h-code table td:last-child {
