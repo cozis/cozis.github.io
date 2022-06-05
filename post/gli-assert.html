@@ -2,16 +2,39 @@
     <head>
         <meta charset="utf-8" />
         <title>
-            Gli assert
+            Gli assert - v 0.1
         </title>
         <link rel="stylesheet" href="style.css" media="screen" />
     </head>
     <body>
+        <nav>
+            <a id="home-link" href="../index.html">&lt;&lt; Home</a>
+            <ol>
+                <li>
+                    <a href="#gli-assert">
+                        Gli assert
+                    </a>
+                </li>
+                <li>
+                    <a href="#cos-e">
+                        Cos'è?
+                    </a>
+                </li>
+                <li>
+                    <a href="#a-cosa-serve">
+                        A cosa serve?
+                    </a>
+                </li>
+                <li>
+                    <a href="#esempi-di-uso-scorretto">
+                        Esempi di uso scorretto
+                    </a>
+                </li>
+            </ol>
+        </nav>
         <main>
-            <br />
-            <a href="../index.html">home</a>
             <article>
-                <h1>Gli assert</h1>
+                <h1 id="gli-assert">Gli assert</h1>
                 <p>
                     Gli assert, per qualche motivo, sono uno degli oggetti della programmazione che vedo fraintesi di più. 
 
@@ -22,7 +45,7 @@
                     Il contesto in cui parlerò degli assert è la programmazione C, ma sono un concetto comune anche ad altri linguaggi.
                 </p>
 
-                <h2>Cos'è?</h2>
+                <h2 id="cos-e">Cos'è?</h2>
                 <p>
                     L'assert è una <i>macro</i> definita in <code>assert.h</code> che prende come argomento un'espressione. Quando le chiamate ad <code>assert</code> vengono eseguite, se l'espressione risulta essere falsa, allora viene abortita l'esecuzione del programma. Se l'espressione risulta essere vera allora non hanno effetto ed il programma continua la sua esecuzione.
                 </p>
@@ -45,7 +68,7 @@
 </div>
 
                 
-                <h2>A cosa serve?</h2>
+                <h2 id="a-cosa-serve">A cosa serve?</h2>
                 <p>
                     <b>Assert serve a comunicare ai lettori del codice sorgente che una certa condizione è sempre vera</b>. Per questo motivo, non è da intendersi come codice ma più come un commento, perchè servono a documentare e non ad implementare funzionalità. 
 
@@ -62,7 +85,9 @@
                     Quando non siamo più in fase di sviluppo assumiamo che le invarianti imposte dagli assert siano sempre vere, rendendo il controllo degli assert superfluo perchè le loro espressioni saranno sempre verificate. A questo punto li disabilitiamo definendo <code>NDEBUG</code>.
                 </p>
 
-                <h2>Esempi di uso scorretto</h2>
+                <h2 id="esempi-di-uso-scorretto">
+                    Esempi di uso scorretto
+                </h2>
                 <p>
                     L'uso scorretto più comune che vedo è quello di usare l'assert nei casi in cui nella logica del programma potrebbe avvenire un errore, ma il programmatore non vuole scrivere il codice che lo gestisce. In tal caso il programmatore ignorante mette un assert sulla condizione di errore. Un esempio di questo caso potrebbe essere l'apertura di un file:
                 </p>

@@ -1,12 +1,56 @@
+:root {
+    --page-width: 800px;
+}
+
+body {
+    margin: 0;
+}
+
+#home-link {
+    background: yellow;
+}
+
+article, nav {
+    line-height: 160%;
+}
+
+nav {
+    position: fixed;
+    top: 30px;
+    right: calc(50% + 20px + var(--page-width)/2);
+}
+
+nav a {
+    text-decoration: none;
+}
+
+nav ol {
+    margin: 0;
+    margin-left: 30px;
+    padding: 0;
+    counter-reset: item;
+}
+
+nav > ol {
+    margin: 0;
+}
+
+nav li {
+    display: block;
+}
+
+nav li:before {
+    content: counters(item, ".") " ";
+    counter-increment: item;
+}
+
 main {
-	max-width: 800px;
+	max-width: var(--page-width);
 	margin: auto;
-	font-family: sans-serif;
-	font-size: 16px;
 }
 
 article {
-	line-height: 160%;
+    margin-top: 30px;
 }
 
 h1 {
@@ -18,7 +62,8 @@ p {
 }
 
 code {
-	background: #eee;
+    background: #E3EDE2;
+/*	background: #eee;*/
 	color: #333;
 
 	font-family: monospace;

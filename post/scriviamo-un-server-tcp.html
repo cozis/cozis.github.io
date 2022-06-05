@@ -7,21 +7,116 @@
 		<link rel="stylesheet" href="style.css" media="screen" />
 	</head>
 	<body>
+		<nav>
+			<a id="home-link" href="../index.html">&lt;&lt; Home</a>
+			<ol>
+				<li>
+					<a href="#scrivere-un-server-tcp">
+						Scrivere un server TCP
+					</a>
+				</li>
+				<li>
+					<a href="#introduzione">
+						Introduzione
+					</a>
+					<ol>
+						<li>
+							<a href="#cos-e-tcp">
+								Cos'è TCP?
+							</a>
+						</li>
+						<li>
+							<a href="#come-funziona">
+								Come funziona?
+							</a>
+						</li>
+						<li>
+							<a href="#cosa-realizzeremo">
+								Cosa realizzeremo
+							</a>
+						</li>
+						<li>
+							<a href="#come-lo-realizzeremo">
+								Come lo realizzeremo: I socket
+							</a>
+						</li>
+					</ol>
+				</li>
+				<li>
+					<a href="#socket">
+						Socket
+					</a>
+				</li>
+				<li>
+					<a href="#configurazione-del-socket-per-il-server">
+						Configurazione del socket per il server
+					</a>
+					<ol>
+						<li>
+							<a href="#bind">Bind</a>
+						</li>
+						<li>
+							<a href="#listen">Listen</a>
+						</li>
+						<li>
+							<a href="#accept">Accept</a>
+						</li>
+					</ol>
+				</li>
+				<li>
+					<a href="#configurazione-del-socket-per-il-client">
+						Configurazione del socket per il client
+					</a>
+					<ol>
+						<li>
+							<a href="#connect">Connect</a>
+						</li>
+					</ol>
+				</li>
+				<li>
+					<a href="#la-business-logic">
+						La business logic
+					</a>
+					<ol>
+						<li>
+							<a href="#send">Send</a>
+						</li>
+						<li>
+							<a href="#recv">Recv</a>
+						</li>
+					</ol>
+				</li>
+				<li>
+					<a href="#la-business-logic-del-client">
+						La business logic del client
+					</a>
+				</li>
+				<li>
+					<a href="#la-business-logic-del-server">
+						La business logic del server
+					</a>
+				</li>
+				<li>
+					<a href="#riferimenti">Riferimenti</a>
+				</li>
+			</ol>
+		</nav>
+
 		<main>
-			<br />
-			<a href="../index.html">home</a>
 			<article>
-				<h1>Scrivere un server TCP</h1>
+				<h1 id="scrivere-un-server-tcp">Scrivere un server TCP</h1>
+
+				<h2 id="introduzione">Introduzione</h2>
 				<p>
 					In questo post spiegherò come scrivere un server TCP e, per mostrarne il funzionamento, il rispettico client.
 				</p>
 
-				<h3>Cos'è TCP?</h3>
+				<h3 id="cos-e-tcp">Cos'è TCP?</h3>
 				<p>
 					TCP è un protocollo di rete, ossia un protocollo che permette lo scambio di messaggi tra computer. Più nel dettaglio quello che ci permette di fare è collegare virtualmente due computer e trasferire un insieme di byte da uno all'altro. Il collegamento è virtuale perchè in realtà i computer si suppongono già fisicamente collegati mediante un insieme di router, tuttavia è solo quando entrambi manifestano l'intento di voler comunicare che questo può avvenire. Quindi per "virtuale" intendo dire che il collegamento è un'astrazione perchè di fatto i computer sono sempre stati collegati.
 				</p>
 
-				<h3>Come funziona?</h3>
+				<h3 id="come-funziona">Come funziona?</h3>
 				<p>
 					Per poter comunicare usando TCP, si deve prima decidere chi dei due nodi è il server e chi è il client. Il server è quello che si mette in ascolto per la connessione, mentre il client è colui che decide quando comunicazione deve cominciare. È da notare che la differenza tra server e client non è legata a chi invia e chi riceve informazioni, è solo un modo per gestire il primo collegamento. Se non ci fosse questa distinzione di ruoli allora sarebbe quasi impossibile creare connessioni TCP! Supponiamo che i ruoli siano simmetrici e che la connessione si avvii quando entrambi allo stesso tempo decidono di aprirla: quali sono le probabilità che due utenti ed i rispettivi computer si colleghino allo stesso tempo? Per farlo in modo preciso sarebbe richiesto qualche tipo di sincronizzazione, ma questa implicherebbe una comunicazione, tuttavia per ipotesi i computer non stanno ancora comunicando!! Un analogia che potrebbe mostrare questo problema sotto un'altra luce è quella dei telefoni cellulari. In effetti ogni volta che abbiamo addosso il cellulare ci stiamo comportando da server, perchè in ogni istante siamo aperti a ricevere telefonate. Dall'altra parte un nostro amico che ci chiama si comporta da client poichè è lui che decide di avviare la comunicazione. Rimuovere questi due ruoli comporterebbe che per parlare a telefono sia noi che il nostro amico dovremmo premere il tasto verde di chiamata allo stesso tempo.
 				</p>
@@ -38,35 +133,69 @@
 					Queste sono solo parole, noi dobbiamo farlo in codice tutto questo!! Me non temete! Ogni passo sarà accuratamente ed amorevolmente documentato :^) <3
 				</p>
 
-				<h3>Cosa realizzeremo</h3>
+				<h3 id="cosa-realizzeremo">Cosa realizzeremo</h3>
 				<p>
-					In verità dire che faremo un server ed un client TCP non è una descrizione esaustiva di quel che faremo. Questo descrive solo il metodo che useranno per comunicare i programmi ma non cosa si diranno. In particolare quel che faremo è un client che invia un messaggio al server, poi il server leggerà il messaggio, ne convertirà maiuscole in minuscole e viceversa, e poi risponderà con la versione elaborata del messaggio.
+					In verità dire che faremo un server ed un client TCP non è una descrizione esaustiva. TCP descrive solo il metodo che i programmi useranno per comunicare, ma non cosa si diranno! In particolare quel che faremo è un client che invia un messaggio al server, che leggerà il messaggio, ne convertirà maiuscole in minuscole e viceversa, e poi rimanderà la versione elaborata del messaggio.
 				</p>
 
-				<h3>Come lo realizzeremo</h3>
+				<h3 id="come-lo-realizzeremo">Come lo realizzeremo: I socket</h3>
 				<p>
-					In pseudo-codice, il client avrà una forma del genere
+					Per realizzare un'applicazione del genere, dovremo fare quella che viene chiamata <i>socket programming</i>, cioè la programmazione che usa i "socket".
+				</p>
+				<p>
+					Un socket è una struttura dati del kernel della quale possiamo chiamare dei metodi per effettuare delle comunicazioni sulla rete. È il modo in cui il sistema operativo astrae le funzionalità più crude dell'hardware. Il tema dell'astrazione dell'hardare è molto vasto, ma per i nostri scopi ci basta questo accenno.
+				</p>
+				<p>
+					Il client avrà una struttura del tipo
+				</p>
+<div class="c2h-code">
+  <div class="c2h-code-inner">
+    <table>
+      <tr><td>1</td><td><span class="c2h-identifier c2h-fdeclname">main</span>()</td></tr>
+      <tr><td>2</td><td>{</td></tr>
+      <tr><td>3</td><td>    <span class="c2h-identifier">address</span> <span class="c2h-operator">=</span> <span class="c2h-val-flt">127.0</span>.<span class="c2h-val-flt">0.1</span></td></tr>
+      <tr><td>4</td><td>    <span class="c2h-identifier">port</span>    <span class="c2h-operator">=</span> <span class="c2h-val-int">8080</span></td></tr>
+      <tr><td>5</td><td>    <span class="c2h-identifier">socket</span>  <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">create_tcp_socket</span>()</td></tr>
+      <tr><td>6</td><td></td></tr>
+      <tr><td>7</td><td>    <span class="c2h-identifier c2h-fcallname">connect</span>(<span class="c2h-identifier">socket</span>, <span class="c2h-identifier">address</span>, <span class="c2h-identifier">port</span>)</td></tr>
+      <tr><td>8</td><td></td></tr>
+      <tr><td>9</td><td>    <span class="c2h-identifier">messaggio</span> <span class="c2h-operator">=</span> <span class="c2h-val-str">"Ossimoro"</span></td></tr>
+      <tr><td>10</td><td></td></tr>
+      <tr><td>11</td><td>    <span class="c2h-identifier c2h-fcallname">send</span>(<span class="c2h-identifier">socket</span>, <span class="c2h-identifier">messaggio</span>)</td></tr>
+      <tr><td>12</td><td></td></tr>
+      <tr><td>13</td><td>    <span class="c2h-identifier">messaggio</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">receive</span>(<span class="c2h-identifier">socket</span>)</td></tr>
+      <tr><td>14</td><td></td></tr>
+      <tr><td>15</td><td>    <span class="c2h-identifier c2h-fcallname">print</span>(<span class="c2h-val-char">'Il server ha risposto con: '</span> <span class="c2h-operator">+</span> <span class="c2h-identifier">messaggio</span>)</td></tr>
+      <tr><td>16</td><td></td></tr>
+      <tr><td>17</td><td>    <span class="c2h-identifier c2h-fcallname">close</span>(<span class="c2h-identifier">socket</span>)</td></tr>
+      <tr><td>18</td><td>}</td></tr>
+    </table>
+  </div>
+</div>
+
+				<p>
+					mentre il server:
 				</p>
 				<div class="c2h-code">
   <div class="c2h-code-inner">
     <table>
-      <tr><td>1</td><td><span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier c2h-fdeclname">main</span>(<span class="c2h-kword c2h-kword-void">void</span>)</td></tr>
+      <tr><td>1</td><td><span class="c2h-identifier c2h-fdeclname">main</span>() </td></tr>
       <tr><td>2</td><td>{</td></tr>
-      <tr><td>3</td><td>    <span class="c2h-identifier">socket</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">create_tcp_socket</span>()</td></tr>
-      <tr><td>4</td><td></td></tr>
-      <tr><td>5</td><td>    <span class="c2h-identifier c2h-fcallname">connect</span>(<span class="c2h-identifier">socket</span>, <span class="c2h-identifier">address</span>, <span class="c2h-identifier">port</span>)</td></tr>
-      <tr><td>6</td><td></td></tr>
-      <tr><td>7</td><td>    <span class="c2h-kword c2h-kword-while">while</span>(<span class="c2h-val-int">1</span>) {</td></tr>
-      <tr><td>8</td><td>        <span class="c2h-identifier">messaggio</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">input</span>()</td></tr>
-      <tr><td>9</td><td></td></tr>
-      <tr><td>10</td><td>        <span class="c2h-identifier c2h-fcallname">send</span>(<span class="c2h-identifier">socket</span>, <span class="c2h-identifier">messaggio</span>)</td></tr>
-      <tr><td>11</td><td></td></tr>
-      <tr><td>12</td><td>        <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier c2h-fcallname">empty</span>(<span class="c2h-identifier">messaggio</span>))</td></tr>
-      <tr><td>13</td><td>            <span class="c2h-kword c2h-kword-break">break</span></td></tr>
+      <tr><td>3</td><td>    <span class="c2h-identifier">port</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">8080</span></td></tr>
+      <tr><td>4</td><td>    <span class="c2h-identifier">socket</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">create_tcp_socket</span>()</td></tr>
+      <tr><td>5</td><td>    </td></tr>
+      <tr><td>6</td><td>    <span class="c2h-identifier c2h-fcallname">listen</span>(<span class="c2h-identifier">socket</span>, <span class="c2h-identifier">port</span>)</td></tr>
+      <tr><td>7</td><td></td></tr>
+      <tr><td>8</td><td>    <span class="c2h-identifier">loop</span> {</td></tr>
+      <tr><td>9</td><td>        <span class="c2h-identifier">socket2</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">accept</span>(<span class="c2h-identifier">socket</span>)</td></tr>
+      <tr><td>10</td><td></td></tr>
+      <tr><td>11</td><td>        <span class="c2h-identifier">messaggio</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">read</span>(<span class="c2h-identifier">socket2</span>)</td></tr>
+      <tr><td>12</td><td></td></tr>
+      <tr><td>13</td><td>        <span class="c2h-identifier">messaggio</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">convert_case</span>(<span class="c2h-identifier">messaggio</span>)</td></tr>
       <tr><td>14</td><td></td></tr>
-      <tr><td>15</td><td>        <span class="c2h-identifier">messaggio2</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">receive</span>(<span class="c2h-identifier">socket</span>)</td></tr>
+      <tr><td>15</td><td>        <span class="c2h-identifier c2h-fcallname">send</span>(<span class="c2h-identifier">socket2</span>, <span class="c2h-identifier">messaggio</span>)</td></tr>
       <tr><td>16</td><td></td></tr>
-      <tr><td>17</td><td>        <span class="c2h-identifier c2h-fcallname">print</span>(<span class="c2h-val-char">'Il server ha risposto con:'</span>, <span class="c2h-identifier">messaggio2</span>)</td></tr>
+      <tr><td>17</td><td>        <span class="c2h-identifier c2h-fcallname">close</span>(<span class="c2h-identifier">socket2</span>)</td></tr>
       <tr><td>18</td><td>    }</td></tr>
       <tr><td>19</td><td>    <span class="c2h-identifier c2h-fcallname">close</span>(<span class="c2h-identifier">socket</span>)</td></tr>
       <tr><td>20</td><td>}</td></tr>
@@ -74,45 +203,7 @@
   </div>
 </div>
 
-				<p>
-					Mentre il server sarà del tipo
-				</p>
-				<div class="c2h-code">
-  <div class="c2h-code-inner">
-    <table>
-      <tr><td>1</td><td><span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier c2h-fdeclname">main</span>(<span class="c2h-kword c2h-kword-void">void</span>) </td></tr>
-      <tr><td>2</td><td>{</td></tr>
-      <tr><td>3</td><td>    <span class="c2h-identifier">port</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">8080</span></td></tr>
-      <tr><td>4</td><td>    <span class="c2h-identifier">socket</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">create_tcp_socket</span>()</td></tr>
-      <tr><td>5</td><td>    <span class="c2h-identifier c2h-fcallname">listen</span>(<span class="c2h-identifier">socket</span>, <span class="c2h-identifier">port</span>)</td></tr>
-      <tr><td>6</td><td>    <span class="c2h-kword c2h-kword-while">while</span>(<span class="c2h-val-int">1</span>) {</td></tr>
-      <tr><td>7</td><td>        <span class="c2h-identifier">socket2</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">accept</span>(<span class="c2h-identifier">socket</span>)</td></tr>
-      <tr><td>8</td><td></td></tr>
-      <tr><td>9</td><td>        <span class="c2h-identifier">messaggio</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">read</span>(<span class="c2h-identifier">socket2</span>)</td></tr>
-      <tr><td>10</td><td></td></tr>
-      <tr><td>11</td><td>        <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier c2h-fcallname">empty</span>(<span class="c2h-identifier">messaggio</span>))</td></tr>
-      <tr><td>12</td><td>            <span class="c2h-kword c2h-kword-break">break</span></td></tr>
-      <tr><td>13</td><td></td></tr>
-      <tr><td>14</td><td>        <span class="c2h-identifier">messaggio2</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">convert_case</span>(<span class="c2h-identifier">messaggio</span>)</td></tr>
-      <tr><td>15</td><td></td></tr>
-      <tr><td>16</td><td>        <span class="c2h-identifier c2h-fcallname">send</span>(<span class="c2h-identifier">socket2</span>, <span class="c2h-identifier">messsaggio2</span>)</td></tr>
-      <tr><td>17</td><td></td></tr>
-      <tr><td>18</td><td>        <span class="c2h-identifier c2h-fcallname">close</span>(<span class="c2h-identifier">socket2</span>)</td></tr>
-      <tr><td>19</td><td>    }</td></tr>
-      <tr><td>20</td><td>    <span class="c2h-identifier c2h-fcallname">close</span>(<span class="c2h-identifier">socket</span>)</td></tr>
-      <tr><td>21</td><td>}</td></tr>
-    </table>
-  </div>
-</div>
-
-				<h2>I socket</h2>
-				<p>
-					Ma.. cos'è un socket?!
-				</p>
-				<p>
-					Un socket è una struttura dati del kernel della quale possiamo chiamare dei metodi per effettuare delle comunicazioni sulla rete. È il modo in cui il sistema operativo astrae le funzionalità più crude dell'hardware. Non c'è bisogno di approfondire più di così per quel che vogliamo fare.
-				</p>
-
+				<h3 id="socket">Socket</h3>
 				<p>
 					I socket possono svolgere tante funzioni, quindi quando ne creiamo uno dobbiamo specificare le modalità di utilizzo. La funzione che permette di creare un socket è
 				</p>
@@ -185,12 +276,14 @@
 					Sia nel caso del client che del server l'apertura e chiusura del socket sono uguali. Quello che cambia è la loro configurazione e poi connessione. Una volta avviata invece il codice torna simmetrico, nel senso che i due programmi possono ricevere ed inviare dati allo stesso modo. 
 				</p>
 
-				<h2>Configurazione del socket per il server</h2>
+				<h2 id="configurazione-del-socket-per-il-server">
+					Configurazione del socket per il server
+				</h2>
 				<p>
 					Quel che il server dovrà fare dopo aver creato il socket è assegnargli un indirizzo IP tra quelli che ha a disposizione (potrebbe evere più di una interfaccia di rete!). Questo si fa usando la funzione <code>bind</code>, infatti "bind" si potrebbe tradurre dall'inglese all'italiano con "legare" (il socket è legato all'indirizzo). Una volta fatto questo è possibile attendere la connessione del client usando la funzione <code>listen</code>, che "ascolta" per connessioni ("listen" è la parola inglese che corrisponde ad "ascoltare" in italiano). Per accettare le connessioni dopo aver fatto <code>listen</code>, il server userà la funzione <code>accept</code>, che restituirà un nuovo socket relativo alla particolare connessione appena creata.
 				</p>
 
-				<h3>Bind</h3>
+				<h3 id="bind">Bind</h3>
 				<p>
 					La funzione <code>bind</code> è la parte più difficile della guida, quindi una volta fatta quella sarà tutto in discesa! L'interfaccia della funzione è questa qui:
 				</p>
@@ -265,7 +358,7 @@
 				</p>
 
 				<p>
-					I campo <code>sin_port</code> e <code>sin_addr</code> (più in particolare <code>sin_addr.s_addr</code>) sono rispettivamente porta ed indirizzo, cioè gli stessi porta ed indirizzo di cui parlavamo nell'introduzione al TCP. Questi due campi dovranno avere l'ordinamento dei byte della rete (cioè big endian, nel caso del TCP), quindi se il nostro computer non ha lo stesso suo ordinamento (cioè è little endian) allora dovremo effettuare una conversione. Per effettuare questa conversione comodamente, possiamo usare le funzioni
+					I campi <code>sin_port</code> e <code>sin_addr</code> (più in particolare <code>sin_addr.s_addr</code>) sono rispettivamente porta ed indirizzo, cioè gli stessi porta ed indirizzo di cui parlavamo nell'introduzione al TCP. Questi due campi dovranno avere l'ordinamento dei byte della rete (cioè big endian, nel caso del TCP), quindi se il nostro computer non ha lo stesso suo ordinamento (cioè è little endian) allora dovremo effettuare una conversione. Per effettuare questa conversione comodamente, possiamo usare le funzioni
 				</p>
 
 				<div class="c2h-code">
@@ -295,7 +388,7 @@
 				</p>
 
 				<p>
-					Il valore di ritorno di <code>bind</code>è zero quando tutto è andato a buon fine ed un valore negativo quando ha fallito.
+					Il valore di ritorno di <code>bind</code> è zero quando tutto è andato a buon fine ed un valore negativo quando ha fallito.
 				</p>
 
 				<p>
@@ -349,7 +442,7 @@
 					Come per <code>AF_INET</code>, le altre famiglie di indirizzi rappresentano a loro modo il contenuto di <code>struct sockaddr</code>. Per questo motivo ciascuna definisce una propria struttura analoga a <code>struct sockaddr_in</code> per costruire i propri indirizzi. Ad esempio per <code>AF_INET6</code> (anche noto come IPv6) si usa <code>sockaddr_in6</code>, mentre per <code>AF_UNIX</code> (i socket unix) si usa <code>struct sockaddr_un</code>. Tuttavia queste strutture potrebbero non avere la stessa dimensione di <code>struct sockaddr</code>! Questo è dovuto al fatto che quando è stata progettata questa API originariamente si è supposto che 14 byte sarebbero bastati per ogni genere di indirizzo. Quando poi è risultato necessario avere indirizzi più grandi, si è preferito non cambiare la definizione di <code>struct sockaddr</code> per rimanere retrocompatibili. In ogni caso questa differenza di dimensione non crea problemi di correttezza nei programmi.
 				</p>
 
-				<h3>Listen</h3>
+				<h3 id="listen">Listen</h3>
 				<p>
 					Ultimo passo dell'inizializzazione è il <code>listen</code>ing, cioè effettivamente ascoltare per nuove connessioni. La funzione che dobbiamo usare è
 				</p>
@@ -422,7 +515,7 @@
   </div>
 </div>
 
-				<h3>Accept</h3>
+				<h3 id="accept">Accept</h3>
 				<p>
 					Una volta completata la configurazione, il server potrà accettare nuove connessioni, usarle e poi chiuderle iterativamente. Come accennato prima, per accettare nuove richiesta si usa
 				</p>
@@ -495,13 +588,15 @@
   </div>
 </div>
 
-				<h2>Configurazione del socket per il client</h2>
+				<h2 id="configurazione-del-socket-per-il-client">
+					Configurazione del socket per il client
+				</h2>
 
 				<p>
 					La configurazione del client è più semplice del server. Come il server crea un socket TCP usando <code>socket</code>, poi però si connette al server chiamando la funzione <code>connect</code>. Se <code>connect</code> ha avuto buon fine, la connessione è stata stabilita ed è possibile comunicare.
 				</p>
 
-				<h3>Connect</h3>
+				<h3 id="connect">Connect</h3>
 				<p>
 					La funzione <code>connect</code> è definita in questo modo qui
 				</p>
@@ -647,12 +742,12 @@
 					A questo punto anche la configurazione del client è conclusa!
 				</p>
 
-				<h2>La business logic</h2>
+				<h2 id="la-business-logic">La business logic</h2>
 				<p>
 					Una volta connessi client e server, sarà il client a mandare il primo messaggo, quindi la prima cosa che farà il server dopo la connessione (cioè l'<code>accept</code>) è una chiamata a <code>recv</code> (dall'inglese, "ricevi"), mentre il client dopo la connessione (<code>connect</code>) chiamerà <code>send</code> (dall'inglese, "invia").
 				</p>
 				
-				<h3>Send</h3>
+				<h3 id="send">Send</h3>
 				<p>
 					La funzione send è definita così	
 				</p>
@@ -678,7 +773,7 @@
 					Il tipo <code>ssize_t</code> è una versione con segno di <code>size_t</code> (cioè può assumere valori negativi). Questi tipi di dato sono usati di solito per mantenere la dimensione di regioni di memoria. 
 				</p>
 
-				<h3>Recv</h3>
+				<h3 id="recv">Recv</h3>
 				<p>
 					La funzione <code>recv</code> è abbastanza simmetrica rispetto alla sorella <code>send</code>. L'interfaccia è questa qui:
 				</p>
@@ -705,7 +800,9 @@
 					La relazione fra <code>send</code> e <code>write</code> si ha anche nel caso di <code>recv</code> e <code>read</code>.
 				</p>
 
-				<h3>La business logic del client</h3>
+				<h3 id="la-business-logic-del-client">
+					La business logic del client
+				</h3>
 
 				<p>
 					Per quanto riguarda il client, un messaggio che verrà mandato al server per essere convertito. Quando la risposta sarà ricevuta, il programma la stampera a video. Avremo una cosa del genere (ho rimosso il codice che abbiamo scritto sino ad ora per poterci concetrare su quello che dobbiamo fare ora)
@@ -972,7 +1069,9 @@
 					Decisamente un bel pezzo di programma!
 				</p>
 
-				<h2>La business logic del server</h2>
+				<h2 id="la-business-logic-del-server">
+					La business logic del server
+				</h2>
 				<p>
 					Il server dalla sua parte, accetterà una connessione, riceverà il messaggio e dopo averlo convertito lo rimanderà al client. Una volta inviato tornera ad attendere per una nuova connessione.
 				</p>
@@ -1152,7 +1251,7 @@
 					In realtà i nomi <code>super_send</code> e <code>super_recv</code> sono intesi come nomi umoristici, nomi più appropriati sarebbero <code>send_all</code> e <code>recv_all</code>.
 				</p>
 
-				<h2>Riferimenti</h2>
+				<h2 id="riferimenti">Riferimenti</h2>
 				<ul>
 					<li>
 						<a href="https://beej.us/guide/bgnet/html/">https://beej.us/guide/bgnet/html/</a>
