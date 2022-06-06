@@ -2,109 +2,115 @@
 	<head>
 		<meta charset="utf-8" />
 		<title>
-			Scrivere web server - v0.1
+			Scrivere web server - v0.2
 		</title>
 		<link rel="stylesheet" href="style.css" media="screen" />
 	</head>
 	<body>
-		<nav>
-			<a id="home-link" href="../index.html">&lt;&lt; Home</a>
-			<ol>
-				<li>
-					<a href="#scrivere-un-server-tcp">
-						Scrivere un server TCP
-					</a>
-				</li>
-				<li>
-					<a href="#introduzione">
-						Introduzione
-					</a>
-					<ol>
-						<li>
-							<a href="#cos-e-tcp">
-								Cos'è TCP?
-							</a>
-						</li>
-						<li>
-							<a href="#come-funziona">
-								Come funziona?
-							</a>
-						</li>
-						<li>
-							<a href="#cosa-realizzeremo">
-								Cosa realizzeremo
-							</a>
-						</li>
-						<li>
-							<a href="#come-lo-realizzeremo">
-								Come lo realizzeremo: I socket
-							</a>
-						</li>
-					</ol>
-				</li>
-				<li>
-					<a href="#socket">
-						Socket
-					</a>
-				</li>
-				<li>
-					<a href="#configurazione-del-socket-per-il-server">
-						Configurazione del socket per il server
-					</a>
-					<ol>
-						<li>
-							<a href="#bind">Bind</a>
-						</li>
-						<li>
-							<a href="#listen">Listen</a>
-						</li>
-						<li>
-							<a href="#accept">Accept</a>
-						</li>
-					</ol>
-				</li>
-				<li>
-					<a href="#configurazione-del-socket-per-il-client">
-						Configurazione del socket per il client
-					</a>
-					<ol>
-						<li>
-							<a href="#connect">Connect</a>
-						</li>
-					</ol>
-				</li>
-				<li>
-					<a href="#la-business-logic">
-						La business logic
-					</a>
-					<ol>
-						<li>
-							<a href="#send">Send</a>
-						</li>
-						<li>
-							<a href="#recv">Recv</a>
-						</li>
-					</ol>
-				</li>
-				<li>
-					<a href="#la-business-logic-del-client">
-						La business logic del client
-					</a>
-				</li>
-				<li>
-					<a href="#la-business-logic-del-server">
-						La business logic del server
-					</a>
-				</li>
-				<li>
-					<a href="#riferimenti">Riferimenti</a>
-				</li>
-			</ol>
-		</nav>
-
 		<main>
+			<a href="../index.html">&lt;&lt; Home</a>
 			<article>
 				<h1 id="scrivere-un-server-tcp">Scrivere un server TCP</h1>
+
+				<h2 id="indice">Indice</h2>
+				<nav>
+					<ol>
+						<li>
+							<a href="#scrivere-un-server-tcp">
+								Scrivere un server TCP
+							</a>
+						</li>
+						<li>
+							<a href="#indice">
+								Indice
+							</a>
+						</li>
+						<li>
+							<a href="#introduzione">
+								Introduzione
+							</a>
+							<ol>
+								<li>
+									<a href="#cos-e-tcp">
+										Cos'è TCP?
+									</a>
+								</li>
+								<li>
+									<a href="#come-funziona">
+										Come funziona?
+									</a>
+								</li>
+								<li>
+									<a href="#cosa-realizzeremo">
+										Cosa realizzeremo
+									</a>
+								</li>
+								<li>
+									<a href="#come-lo-realizzeremo">
+										Come lo realizzeremo: I socket
+									</a>
+								</li>
+							</ol>
+						</li>
+						<li>
+							<a href="#socket">
+								Socket
+							</a>
+						</li>
+						<li>
+							<a href="#configurazione-del-socket-per-il-server">
+								Configurazione del socket per il server
+							</a>
+							<ol>
+								<li>
+									<a href="#bind">Bind</a>
+								</li>
+								<li>
+									<a href="#listen">Listen</a>
+								</li>
+								<li>
+									<a href="#accept">Accept</a>
+								</li>
+							</ol>
+						</li>
+						<li>
+							<a href="#configurazione-del-socket-per-il-client">
+								Configurazione del socket per il client
+							</a>
+							<ol>
+								<li>
+									<a href="#connect">Connect</a>
+								</li>
+							</ol>
+						</li>
+						<li>
+							<a href="#la-business-logic">
+								La business logic
+							</a>
+							<ol>
+								<li>
+									<a href="#send">Send</a>
+								</li>
+								<li>
+									<a href="#recv">Recv</a>
+								</li>
+							</ol>
+						</li>
+						<li>
+							<a href="#la-business-logic-del-client">
+								La business logic del client
+							</a>
+						</li>
+						<li>
+							<a href="#la-business-logic-del-server">
+								La business logic del server
+							</a>
+						</li>
+						<li>
+							<a href="#riferimenti">Riferimenti</a>
+						</li>
+					</ol>
+				</nav>
 
 				<h2 id="introduzione">Introduzione</h2>
 				<p>

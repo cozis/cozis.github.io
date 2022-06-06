@@ -6,18 +6,8 @@ body {
     margin: 0;
 }
 
-#home-link {
-    background: yellow;
-}
-
-article, nav {
+article {
     line-height: 160%;
-}
-
-nav {
-    position: fixed;
-    top: 30px;
-    right: calc(50% + 20px + var(--page-width)/2);
 }
 
 nav a {
@@ -46,11 +36,7 @@ nav li:before {
 
 main {
 	max-width: var(--page-width);
-	margin: auto;
-}
-
-article {
-    margin-top: 30px;
+	margin: 30px auto;
 }
 
 h1 {

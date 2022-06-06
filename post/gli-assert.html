@@ -2,50 +2,76 @@
     <head>
         <meta charset="utf-8" />
         <title>
-            Gli assert - v 0.1
+            Gli assert - v 0.2
         </title>
         <link rel="stylesheet" href="style.css" media="screen" />
     </head>
     <body>
-        <nav>
-            <a id="home-link" href="../index.html">&lt;&lt; Home</a>
-            <ol>
-                <li>
-                    <a href="#gli-assert">
-                        Gli assert
-                    </a>
-                </li>
-                <li>
-                    <a href="#cos-e">
-                        Cos'è?
-                    </a>
-                </li>
-                <li>
-                    <a href="#a-cosa-serve">
-                        A cosa serve?
-                    </a>
-                </li>
-                <li>
-                    <a href="#esempi-di-uso-scorretto">
-                        Esempi di uso scorretto
-                    </a>
-                </li>
-            </ol>
-        </nav>
         <main>
+            <a href="../index.html">&lt;&lt; Home</a>
             <article>
                 <h1 id="gli-assert">Gli assert</h1>
-                <p>
-                    Gli assert, per qualche motivo, sono uno degli oggetti della programmazione che vedo fraintesi di più. 
 
-                    Mi sono trovato più volte a spiegare e rispiegare cosa sono. Per questo motivo ho deciso di scrivere qui una spiegazione una volta per tutte e mandare il link tutte le volte che mi troverò a volerlo spiegare. 
+                <h2 id="indice">Indice</h2>
+                <nav>
+                    <ol>
+                        <li>
+                            <a href="#gli-assert">
+                                Gli assert
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#indice">
+                                Indice
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#introduzione">
+                                Introduzione
+                            </a>
+                            <ol>
+                                <li>
+                                    <a href="#cos-e">
+                                        Cos'è?
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#a-cosa-serve">
+                                        A cosa serve?
+                                    </a>
+                                </li>
+                            </ol>
+                        </li>
+                        <li>
+                            <a href="#esempi-di-uso-scorretto">
+                                Esempi di uso scorretto
+                            </a>
+                            <ol>
+                                <li>
+                                    <a href="#assert-come-todo">
+                                        Usare gli assert come to-do
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#assert-come-abort">
+                                        Usare gli assert come abort
+                                    </a>
+                                </li>
+                            </ol>
+                        </li>
+                    </ol>
+                </nav>
+
+                <h2 id="introduzione">Introduzione</h2>
+                <p>
+                    Gli assert, per qualche motivo, sono uno degli oggetti della programmazione che vedo fraintesi di più. Mi sono trovato più volte a spiegare e rispiegare cosa sonom, per questo motivo ho deciso di scrivere qui una spiegazione esaustiva da poter linkare nel futuro!. 
                 </p>
 
                 <p class="nota">
                     Il contesto in cui parlerò degli assert è la programmazione C, ma sono un concetto comune anche ad altri linguaggi.
                 </p>
 
-                <h2 id="cos-e">Cos'è?</h2>
+                <h3 id="cos-e">Cos'è?</h3>
                 <p>
                     L'assert è una <i>macro</i> definita in <code>assert.h</code> che prende come argomento un'espressione. Quando le chiamate ad <code>assert</code> vengono eseguite, se l'espressione risulta essere falsa, allora viene abortita l'esecuzione del programma. Se l'espressione risulta essere vera allora non hanno effetto ed il programma continua la sua esecuzione.
                 </p>
@@ -68,7 +94,7 @@
 </div>
 
                 
-                <h2 id="a-cosa-serve">A cosa serve?</h2>
+                <h3 id="a-cosa-serve">A cosa serve?</h3>
                 <p>
                     <b>Assert serve a comunicare ai lettori del codice sorgente che una certa condizione è sempre vera</b>. Per questo motivo, non è da intendersi come codice ma più come un commento, perchè servono a documentare e non ad implementare funzionalità. 
 
@@ -88,6 +114,8 @@
                 <h2 id="esempi-di-uso-scorretto">
                     Esempi di uso scorretto
                 </h2>
+
+                <h3 id="assert-come-todo">Usare gli assert come to-do</h3>
                 <p>
                     L'uso scorretto più comune che vedo è quello di usare l'assert nei casi in cui nella logica del programma potrebbe avvenire un errore, ma il programmatore non vuole scrivere il codice che lo gestisce. In tal caso il programmatore ignorante mette un assert sulla condizione di errore. Un esempio di questo caso potrebbe essere l'apertura di un file:
                 </p>
@@ -113,7 +141,7 @@
 
 
                 <p>
-                    In questo caso l'uso è scorretto perchè è possibile che il file non esista, anche se il programma è scritto correttamente ed è privo di bug. L'esistenza del file non è qualcosa sul quale il programma ha il controllo, quindi è realistico il caso in cui questo non esista ed <code>fopen</code> ritorni <code>NULL</code>. Quando poi avremo concluso lo sviluppo del nostro programma e faremo una compilazione non di debug definendo <code>NDEBUG</code>, questo controllo diventerà una nop (no operation) ed il nostro programma resterà scoperto a questa condizione di errore.
+                    In questo caso l'uso è scorretto perchè è possibile che il file non esista, anche se il programma è scritto correttamente e senza bug. L'esistenza del file non è qualcosa sul quale il programma ha il controllo, quindi è realistico il caso in cui questo non esista ed <code>fopen</code> ritorni <code>NULL</code>. Quando poi avremo concluso lo sviluppo del nostro programma e faremo una compilazione non di debug definendo <code>NDEBUG</code>, questo controllo diventerà una nop (no operation) ed il nostro programma resterà scoperto a questa condizione di errore.
                 </p>
 
                 <p class="nota">
@@ -123,6 +151,7 @@
                     È naturale "impigrirsi" e non voler gestire subito una condizione di errore. Del resto il codice di un programma può essere rappresentato come un albero, dove la separazione di rami corrisponde ad un if-else. Gestire tutti gli errori subito corrisponde a percorrere questo albero depth-first, quando magari una persona è più portata ad un approccio breadth-first (cioè trattare prima i casi generali e poi gestire i casi nel dettaglio). Il problema, di nuovo, è l'uso degli <code>assert</code> per fare questa cosa. 
                 </p>
 
+                <h3 id="assert-come-abort">Usare gli assert come abort</h3>
                 <p>
                     Il secondo caso di uso scorretto è quello in cui una condizione di errore si verifica, ma il programma non può recuperare da questa crisi. Per questo motivo l'unica opzione è abortire l'esecuzione. Un esempio di questo caso è l'allocazione della memoria. I programmi che scriviamo comunemente tendono a non essere progettati a recuperare dal fallimento di un'allocazione, quindi se, ad esempio, <code>malloc</code> ci restituisce un bel <code>NULL</code>, non possiamo far altro che abortire. In questo caso potrebbe sembrare una buona idea usare <code>assert</code> dato che manda il programma in abort quando si verifica la falsità di un'affermazione:
                 </p>
@@ -150,6 +179,29 @@
                 <p>
                     ma questo è scorretto, perchè non avere memoria è una condizione perfettamente plausibile anche per un programma corretto, quindi quando andremo a fare una compilazione non di debug definendo <code>NDEBUG</code>, questi controlli svaniranno, lasciano il programma scoperto a queste condizioni di errore.
                 </p>
+                <p>
+                    In questo caso la cosa corretta da fare era semplicemente usare <code>abort</code>, così:
+                </p>
+<div class="c2h-code">
+  <div class="c2h-code-inner">
+    <table>
+      <tr><td>1</td><td><span class="c2h-directive">#include</span> <span class="c2h-val-str">&lt;stdlib.h&gt;</span></td></tr>
+      <tr><td>2</td><td></td></tr>
+      <tr><td>3</td><td><span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier c2h-fdeclname">main</span>()</td></tr>
+      <tr><td>4</td><td>{</td></tr>
+      <tr><td>5</td><td>    <span class="c2h-kword c2h-kword-void">void</span> <span class="c2h-operator">*</span><span class="c2h-identifier">p</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">malloc</span>(<span class="c2h-val-int">1024</span>);</td></tr>
+      <tr><td>6</td><td>    <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier">p</span> <span class="c2h-operator">==</span> <span class="c2h-identifier">NULL</span>)</td></tr>
+      <tr><td>7</td><td>        <span class="c2h-identifier c2h-fcallname">abort</span>();</td></tr>
+      <tr><td>8</td><td></td></tr>
+      <tr><td>9</td><td>    <span class="c2h-comment">// .. //</span></td></tr>
+      <tr><td>10</td><td></td></tr>
+      <tr><td>11</td><td>    <span class="c2h-identifier c2h-fcallname">free</span>(<span class="c2h-identifier">p</span>);</td></tr>
+      <tr><td>12</td><td>    <span class="c2h-kword c2h-kword-return">return</span> <span class="c2h-val-int">0</span>; </td></tr>
+      <tr><td>13</td><td>}</td></tr>
+    </table>
+  </div>
+</div>
+
             </article>
         </main>
     </body>
