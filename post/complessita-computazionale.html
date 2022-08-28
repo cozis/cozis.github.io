@@ -1,0 +1,352 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>
+            Complessità computazionale - v0
+        </title>
+        <link rel="stylesheet" href="style.css" media="screen" />
+        <style>
+            #file-list,
+            #sort-list {
+                border-collapse: collapse;
+                font-family: monospace;
+                border: 1px solid #ccc;
+                margin: 20px 0;
+            }
+
+            #file-list td,
+            #sort-list td {
+                padding: 3px 15px;
+            }
+
+            #file-list tr:first-child td,
+            #sort-list tr:first-child td {
+                font-weight: bold;
+            }
+
+            #file-list tr:nth-child(2n) td,
+            #sort-list tr:nth-child(2n) td {
+                background: #eee;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <a href="../index.html">&lt;&lt; Home</a>
+            <article>
+                <h1 id="compl-compu">Complessità computazionale</h1>
+
+                <h2 id="indice">Indice</h2>
+                <nav>
+                    <ol>
+                        <li><a href="#compl-compu">Complessità computazionale</a></li>
+                        <li><a href="#indice">Indice</a></li>
+                        <li><a href="#introduzione">Introduzione</a></li>
+                    </ol>
+                </nav>
+
+                <h2 id="introduzione">Introduzione</h2>
+                <p>
+                    La complessità computazionale è una metrica che misura le prestazioni di algoritmi mentre sono sotto grandi carichi di dati. 
+                </p>
+
+                <p>
+                    Ogni applicazione può essere modellata come un oggetto che prende dei dati in input e, in corrispondenza di questo input, produce un output. Per produrre l'output è sempre necessario del tempo e, naturalmente, all'aumentare delle dimensioni dell'input aumenterà questo tempo di calcolo. La complessità computazionale studia come cresce il tempo di calcolo rispetto alla crescita dell'input.
+                </p>
+
+                <p>
+                    Ad esempio consideriamo due algoritmi A e B che sono funzionalmente equivalenti (cioè producono lo stasso output a parità di input) ma diversi nell'implementazione, come ad esempio due algoritmi di compressione che dato un file (la cui dimensione è variabile) producono il medesimo file ma compresso. 
+
+                    Decidiamo di testare questi algoritmi, quindi gli diamo in pasto file di varie dimensioni e studiamo il loro comportamento. Supponiamo di ottenere i seguenti risultati e di volerli interpretare:
+
+                    <center>
+                        <table id="file-list">
+                            <tr>
+                                <td>File</td>
+                                <td>Dimensione</td>
+                                <td>Tempo di A</td>
+                                <td>Tempo di B</td>
+                            </tr>
+                            <tr><td>file1.txt</td><td>1MB</td><td>0.5s</td><td>0.1s</td></tr>
+                            <tr><td>file2.txt</td><td>2MB</td><td>1.2s</td><td>1.5s</td></tr>
+                            <tr><td>file3.txt</td><td>3MB</td><td>1.6s</td><td>3.4s</td></tr>
+                            <tr><td>file4.txt</td><td>4MB</td><td>1.9s</td><td>5.6s</td></tr>
+                            <tr><td>file5.txt</td><td>5MB</td><td>2.1s</td><td>8.6s</td></tr>
+                            <tr><td>file6.txt</td><td>6MB</td><td>2.3s</td><td>10.8</td></tr>
+                            <tr><td>file7.txt</td><td>7MB</td><td>2.4s</td><td>13.7s</td></tr>
+                            <tr><td>file8.txt</td><td>8MB</td><td>2.6s</td><td>16.7s</td></tr>
+                            <tr><td>file9.txt</td><td>9MB</td><td>2.7s</td><td>19.9s</td></tr>
+                            <tr><td>file10.txt</td><td>10MB</td><td>2.8s</td><td>23.1s</td></tr>
+                            <tr><td>big_file.txt</td><td>100MB</td><td>5.1s</td><td>460.6s (8 minuti)</td></tr>
+                            <tr><td>super_big_file.txt</td><td>1000MB (1GB)</td><td>7.4s</td><td>6907.9s (2 ore)</td></tr>
+                        </table>
+                    </center>
+
+                    I file sono di dimensioni crescenti in modo lineare da 1 a 10MB, eccetto gli ultimi due file <code>big_file.txt</code> e <code>super_big_file.txt</code> che sono esempi di file super grandi.
+                </p>
+
+                <p>
+                    Naturalmente all'aumentare delle dimensioni dell'input entrambi algoritmi ci mettono più tempo a concludere l'esecuzione, tuttavia l'algoritmo A tende a comportarsi molto meglio di B per file grandi. Ad esempio per un input di 2MB gli algoritmi hanno tempi simili, ma per 3MB B impiega il doppio del tempo di A e salendo a 6MB, B impiega 5 volte il tempo di A! In questo caso si dice che A è più <i>scalabile</i> di B, perchè il suo tempo d'esecuzione cresce più lentamente.
+                </p>
+
+                <p>
+                    Ma come è possibile che due algoritmi risultino in tempi di calcolo così radicalmente differenti? Vediamo un esempio!
+                </p>
+
+                <p>
+                    Consideriamo il problema dell'ordinamento di un array di numeri interi. Esistono molti modi per ordinare un array, ciascuno dei quali ha un tempo d'esecuzione differente. Consideriamo un selection sort ed un counting sort.
+                </p>
+
+                <p>
+                    Delle possibili implementazioni di selection sort e counting sort sono:
+                </p>
+                <div class="c2h-code">
+  <div class="c2h-code-inner">
+    <table>
+      <tr><td>1</td><td><span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier c2h-fdeclname">find_lowest</span>(<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-operator">*</span><span class="c2h-identifier">array</span>, <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">size</span>)</td></tr>
+      <tr><td>2</td><td>{</td></tr>
+      <tr><td>3</td><td>    <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">min_pos</span> <span class="c2h-operator">=</span> <span class="c2h-operator">-</span><span class="c2h-val-int">1</span>;</td></tr>
+      <tr><td>4</td><td>    <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">size</span>; <span class="c2h-operator">++</span><span class="c2h-identifier">i</span>)</td></tr>
+      <tr><td>5</td><td>        <span class="c2h-kword c2h-kword-if">if</span> (<span class="c2h-identifier">min_pos</span> <span class="c2h-operator">&lt;</span> <span class="c2h-val-int">0</span> <span class="c2h-operator">||</span> <span class="c2h-identifier">array</span>[<span class="c2h-identifier">i</span>] <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">array</span>[<span class="c2h-identifier">min_pos</span>])</td></tr>
+      <tr><td>6</td><td>            <span class="c2h-identifier">min_pos</span> <span class="c2h-operator">=</span> <span class="c2h-identifier">i</span>;</td></tr>
+      <tr><td>7</td><td></td></tr>
+      <tr><td>8</td><td>    <span class="c2h-kword c2h-kword-return">return</span> <span class="c2h-identifier">min_pos</span>;</td></tr>
+      <tr><td>9</td><td>}</td></tr>
+      <tr><td>10</td><td></td></tr>
+      <tr><td>11</td><td><span class="c2h-kword c2h-kword-void">void</span> <span class="c2h-identifier c2h-fdeclname">swap</span>(<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-operator">*</span><span class="c2h-identifier">a</span>, <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-operator">*</span><span class="c2h-identifier">b</span>)</td></tr>
+      <tr><td>12</td><td>{</td></tr>
+      <tr><td>13</td><td>    <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">t</span> <span class="c2h-operator">=</span> <span class="c2h-operator">*</span><span class="c2h-identifier">a</span>;</td></tr>
+      <tr><td>14</td><td>    <span class="c2h-operator">*</span><span class="c2h-identifier">a</span> <span class="c2h-operator">=</span> <span class="c2h-operator">*</span><span class="c2h-identifier">b</span>;</td></tr>
+      <tr><td>15</td><td>    <span class="c2h-operator">*</span><span class="c2h-identifier">b</span> <span class="c2h-operator">=</span> <span class="c2h-identifier">t</span>;</td></tr>
+      <tr><td>16</td><td>}</td></tr>
+      <tr><td>17</td><td></td></tr>
+      <tr><td>18</td><td><span class="c2h-kword c2h-kword-void">void</span> <span class="c2h-identifier c2h-fdeclname">selection_sort</span>(<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-operator">*</span><span class="c2h-identifier">array</span>, <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">size</span>)</td></tr>
+      <tr><td>19</td><td>{</td></tr>
+      <tr><td>20</td><td>    <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">size</span>; <span class="c2h-operator">++</span><span class="c2h-identifier">i</span>) {</td></tr>
+      <tr><td>21</td><td></td></tr>
+      <tr><td>22</td><td>        <span class="c2h-comment">// Trova l'elemento più piccolo nella</span></td></tr>
+      <tr><td>23</td><td>        <span class="c2h-comment">// seconda metà dell'array, cioè quella</span></td></tr>
+      <tr><td>24</td><td>        <span class="c2h-comment">// ancora non ordinata che va dall'indice</span></td></tr>
+      <tr><td>25</td><td>        <span class="c2h-comment">// [i] fino a [size-1].</span></td></tr>
+      <tr><td>26</td><td>        <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">min_pos</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">find_lowest</span>(<span class="c2h-identifier">array</span> <span class="c2h-operator">+</span> <span class="c2h-identifier">i</span>, <span class="c2h-identifier">size</span> <span class="c2h-operator">-</span> <span class="c2h-identifier">i</span>);</td></tr>
+      <tr><td>27</td><td></td></tr>
+      <tr><td>28</td><td>        <span class="c2h-comment">// Rendiamo l'indice dell'elemento relativo</span></td></tr>
+      <tr><td>29</td><td>        <span class="c2h-comment">// all'intero array e non solo alla parte non</span></td></tr>
+      <tr><td>30</td><td>        <span class="c2h-comment">// ancora ordinata.</span></td></tr>
+      <tr><td>31</td><td>        <span class="c2h-identifier">min_pos</span> <span class="c2h-operator">+=</span> <span class="c2h-identifier">i</span>;</td></tr>
+      <tr><td>32</td><td></td></tr>
+      <tr><td>33</td><td>        <span class="c2h-comment">// Metti l'elemento trovato nella ragione</span></td></tr>
+      <tr><td>34</td><td>        <span class="c2h-comment">// ordinata dell'array.</span></td></tr>
+      <tr><td>35</td><td>        <span class="c2h-identifier c2h-fcallname">swap</span>(<span class="c2h-identifier">array</span> <span class="c2h-operator">+</span> <span class="c2h-identifier">i</span>, <span class="c2h-identifier">array</span> <span class="c2h-operator">+</span> <span class="c2h-identifier">min_pos</span>);</td></tr>
+      <tr><td>36</td><td>    }</td></tr>
+      <tr><td>37</td><td>}</td></tr>
+      <tr><td>38</td><td></td></tr>
+      <tr><td>39</td><td><span class="c2h-kword c2h-kword-void">void</span> <span class="c2h-identifier c2h-fdeclname">counting_sort</span>(<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-operator">*</span><span class="c2h-identifier">array</span>, <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">size</span>, <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">min_value</span>, <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">max_value</span>)</td></tr>
+      <tr><td>40</td><td>{</td></tr>
+      <tr><td>41</td><td>    <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">counter_count</span> <span class="c2h-operator">=</span> (<span class="c2h-identifier">max_value</span> <span class="c2h-operator">-</span> <span class="c2h-identifier">min_value</span> <span class="c2h-operator">+</span> <span class="c2h-val-int">1</span>);</td></tr>
+      <tr><td>42</td><td></td></tr>
+      <tr><td>43</td><td>    <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">counters</span>[<span class="c2h-val-int">32</span>];</td></tr>
+      <tr><td>44</td><td></td></tr>
+      <tr><td>45</td><td>    <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">counter_count</span>; <span class="c2h-operator">++</span><span class="c2h-identifier">i</span>)</td></tr>
+      <tr><td>46</td><td>        <span class="c2h-identifier">counters</span>[<span class="c2h-identifier">i</span>] <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>;</td></tr>
+      <tr><td>47</td><td></td></tr>
+      <tr><td>48</td><td>    <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">size</span>; <span class="c2h-operator">++</span><span class="c2h-identifier">i</span>) {</td></tr>
+      <tr><td>49</td><td>        <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">value</span> <span class="c2h-operator">=</span> <span class="c2h-identifier">array</span>[<span class="c2h-identifier">i</span>];</td></tr>
+      <tr><td>50</td><td>        <span class="c2h-identifier">counters</span>[<span class="c2h-identifier">value</span> <span class="c2h-operator">-</span> <span class="c2h-identifier">min_value</span>]<span class="c2h-operator">++</span>;</td></tr>
+      <tr><td>51</td><td>    }</td></tr>
+      <tr><td>52</td><td></td></tr>
+      <tr><td>53</td><td>    <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>, <span class="c2h-identifier">w</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">counter_count</span>; <span class="c2h-operator">++</span><span class="c2h-identifier">i</span>)</td></tr>
+      <tr><td>54</td><td>        <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">j</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">j</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">counters</span>[<span class="c2h-identifier">i</span>]; <span class="c2h-operator">++</span><span class="c2h-identifier">j</span>)</td></tr>
+      <tr><td>55</td><td>            <span class="c2h-identifier">array</span>[<span class="c2h-identifier">w</span><span class="c2h-operator">++</span>] <span class="c2h-operator">=</span> <span class="c2h-identifier">i</span>;</td></tr>
+      <tr><td>56</td><td>}</td></tr>
+    </table>
+  </div>
+</div>
+
+                <p class="nota">
+                    Ho omesso da queste due porzioni di codice il controllo degli errori, quindi utilizzarli in un vero programma potrebbe risultare in errori. Più avanti fornirò il programma completo che ho usato per testare questi algoritmi.
+                </p>
+
+                <p>
+                    Il <i>selection sort</i> itera lungo l'array da ordinare e cerca l'elemento più piccolo. Una volta trovato, lo mette all'inizio dell'array. Successivamente cerca l'elemento più piccolo nel sotto-array che va dalla posizione 1 fino alla fine (per ignorare l'elemento già ordinato) e lo mette alla seconda posizione. Successivamente trova l'elemento più piccolo nel sotto-array che va dalla posizione 2 sino alla fine e così via, iterando finchè l'array non è ordinato. 
+                </p>
+
+                <p>
+                    Il <i>counting sort</i> itera lungo l'array e conta le occorrenze di ciascun numero che incontra. Contati tutti i numeri, li ridispone in un colpo nell'array.
+                </p>
+
+                <center>
+                    <table id="sort-list">
+                        <tr>
+                            <td>Numero di elementi</td>
+                            <td>Selection sort</td>
+                            <td>Counting sort</td>
+                            <td>"qsort"</td>
+                        </tr>
+                        <tr>
+                            <td>10</td>
+                            <td>0.000001s</td>
+                            <td>0.000001s</td>
+                            <td>0.000001s</td>
+                        </tr>
+                        <tr>
+                            <td>100</td>
+                            <td>0.000014s</td>
+                            <td>0.000002s</td>
+                            <td>0.000006s</td>
+                        </tr>
+                        <tr>
+                            <td>1,000</td>
+                            <td>0.000979s</td>
+                            <td>0.000005s</td>
+                            <td>0.000064s</td>
+                        </tr>
+
+                        <tr>
+                            <td>10,000</td>
+                            <td>0.093092s</td>
+                            <td>0.000042s</td>
+                            <td>0.000696s</td>
+                        </tr>
+
+                        <tr>
+                            <td>100,000</td>
+                            <td>9.204805s</td>
+                            <td>0.000451s</td>
+                            <td>0.007685s</td>
+                        </tr>
+
+                        <tr>
+                            <td>1,000,000</td>
+                            <td>941.154007s</td>
+                            <td>0.004555s</td>
+                            <td>0.086156s</td>
+                        </tr>
+                    </table>
+                </center>
+
+                <p>
+                    Per avere un riferimento, è aggiunta anche una colonna per la funzione <code>qsort</code> della libreria standard del C
+                </p>
+
+                <div class="c2h-code">
+  <div class="c2h-code-inner">
+    <table>
+      <tr><td>1</td><td><span class="c2h-directive">#include</span> <span class="c2h-val-str">&lt;stdlib.h&gt;</span></td></tr>
+      <tr><td>2</td><td></td></tr>
+      <tr><td>3</td><td><span class="c2h-kword c2h-kword-void">void</span> <span class="c2h-identifier c2h-fdeclname">qsort</span>(<span class="c2h-kword c2h-kword-void">void</span> <span class="c2h-operator">*</span><span class="c2h-identifier">base</span>, <span class="c2h-identifier">size_t</span> <span class="c2h-identifier">nmemb</span>, <span class="c2h-identifier">size_t</span> <span class="c2h-identifier">size</span>, </td></tr>
+      <tr><td>4</td><td>           <span class="c2h-kword c2h-kword-int">int</span> (<span class="c2h-operator">*</span><span class="c2h-identifier">compar</span>)(<span class="c2h-kword c2h-kword-const">const</span> <span class="c2h-kword c2h-kword-void">void</span><span class="c2h-operator">*</span>, <span class="c2h-kword c2h-kword-const">const</span> <span class="c2h-kword c2h-kword-void">void</span><span class="c2h-operator">*</span>));</td></tr>
+    </table>
+  </div>
+</div>
+
+
+                <p>
+                    Rappresentando graficamente il comportamento di questi algoritmi, si ottiene il seguente grafico (i grafici sono due, ma rappresentano la stessa cosa)
+                </p>
+
+                <center style="overflow: auto;">
+                    <a target="_blank" href="sort_plots.png">
+                        <img width="48%" style="float: left"  src="sort_plots.png" />
+                    </a>
+                    <a target="_blank" href="sort_plots_2.png">
+                    <img width="48%" style="float: right" src="sort_plots_2.png" />
+                    </a>
+                </center>
+
+                <p class="nota">
+                    Il grafico sulla sinistra rappresenta i tempi di esecuzione per array di fino a 500 elementi, mentre il secondo fino a 7000.
+                    (Puoi cliccare sulle immagini per ingrandirle!)
+                </p>
+
+                <p>
+                    Il grafico relativo al selection sort ha l'andamento di una parabola, mentre quello del counting sort e del <code>qsort</code> sono più simili a delle rette. Questa cosa è dovuta al fatto che, approssimativamente, il selection sort per ordinare un array di N elementi, deve effettuare N^2 operazioni. Il counting sort invece, approssimativamente 2N. 
+                </p>
+
+                <p>
+                    Infatti, se diamo una seconda occhiata al selection sort
+                </p>
+
+                <div class="c2h-code">
+  <div class="c2h-code-inner">
+    <table>
+      <tr><td>1</td><td><span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier c2h-fdeclname">find_lowest</span>(<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-operator">*</span><span class="c2h-identifier">array</span>, <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">size</span>)</td></tr>
+      <tr><td>2</td><td>{</td></tr>
+      <tr><td>3</td><td>    <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">min_pos</span> <span class="c2h-operator">=</span> <span class="c2h-operator">-</span><span class="c2h-val-int">1</span>;</td></tr>
+      <tr><td>4</td><td>    <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">size</span>; <span class="c2h-operator">++</span><span class="c2h-identifier">i</span>)</td></tr>
+      <tr><td>5</td><td>        <span class="c2h-kword c2h-kword-if">if</span> (<span class="c2h-identifier">min_pos</span> <span class="c2h-operator">&lt;</span> <span class="c2h-val-int">0</span> <span class="c2h-operator">||</span> <span class="c2h-identifier">array</span>[<span class="c2h-identifier">i</span>] <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">array</span>[<span class="c2h-identifier">min_pos</span>])</td></tr>
+      <tr><td>6</td><td>            <span class="c2h-identifier">min_pos</span> <span class="c2h-operator">=</span> <span class="c2h-identifier">i</span>;</td></tr>
+      <tr><td>7</td><td></td></tr>
+      <tr><td>8</td><td>    <span class="c2h-kword c2h-kword-return">return</span> <span class="c2h-identifier">min_pos</span>;</td></tr>
+      <tr><td>9</td><td>}</td></tr>
+      <tr><td>10</td><td></td></tr>
+      <tr><td>11</td><td><span class="c2h-kword c2h-kword-void">void</span> <span class="c2h-identifier c2h-fdeclname">selection_sort</span>(<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-operator">*</span><span class="c2h-identifier">array</span>, <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">size</span>)</td></tr>
+      <tr><td>12</td><td>{</td></tr>
+      <tr><td>13</td><td>    <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">size</span>; <span class="c2h-operator">++</span><span class="c2h-identifier">i</span>) {</td></tr>
+      <tr><td>14</td><td></td></tr>
+      <tr><td>15</td><td>        <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">min_pos</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">find_lowest</span>(<span class="c2h-identifier">array</span> <span class="c2h-operator">+</span> <span class="c2h-identifier">i</span>, <span class="c2h-identifier">size</span> <span class="c2h-operator">-</span> <span class="c2h-identifier">i</span>);</td></tr>
+      <tr><td>16</td><td></td></tr>
+      <tr><td>17</td><td>        <span class="c2h-identifier">min_pos</span> <span class="c2h-operator">+=</span> <span class="c2h-identifier">i</span>;</td></tr>
+      <tr><td>18</td><td></td></tr>
+      <tr><td>19</td><td>        <span class="c2h-identifier c2h-fcallname">swap</span>(<span class="c2h-identifier">array</span> <span class="c2h-operator">+</span> <span class="c2h-identifier">i</span>, <span class="c2h-identifier">array</span> <span class="c2h-operator">+</span> <span class="c2h-identifier">min_pos</span>);</td></tr>
+      <tr><td>20</td><td>    }</td></tr>
+      <tr><td>21</td><td>}</td></tr>
+    </table>
+  </div>
+</div>
+
+                <p>
+                    Il selection sort consiste in un'iterazione lungo gli N elementi, e per ciascuno di questi viene chiamata <code>find_lowest</code>, che a sua volta itera lungo gli N elementi. Per questo approssimativamente sono necessari N^2 passaggi per completare l'ordinamento.
+                </p>
+
+                <p>
+                    Per quando riguarda il counting sort, invece
+                </p>
+
+                <div class="c2h-code">
+  <div class="c2h-code-inner">
+    <table>
+      <tr><td>1</td><td><span class="c2h-kword c2h-kword-void">void</span> <span class="c2h-identifier c2h-fdeclname">counting_sort</span>(<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-operator">*</span><span class="c2h-identifier">array</span>, <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">size</span>, <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">min_value</span>, <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">max_value</span>)</td></tr>
+      <tr><td>2</td><td>{</td></tr>
+      <tr><td>3</td><td>    <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">counter_count</span> <span class="c2h-operator">=</span> (<span class="c2h-identifier">max_value</span> <span class="c2h-operator">-</span> <span class="c2h-identifier">min_value</span> <span class="c2h-operator">+</span> <span class="c2h-val-int">1</span>);</td></tr>
+      <tr><td>4</td><td></td></tr>
+      <tr><td>5</td><td>    <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">counters</span>[<span class="c2h-val-int">32</span>];</td></tr>
+      <tr><td>6</td><td></td></tr>
+      <tr><td>7</td><td>    <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">counter_count</span>; <span class="c2h-operator">++</span><span class="c2h-identifier">i</span>)</td></tr>
+      <tr><td>8</td><td>        <span class="c2h-identifier">counters</span>[<span class="c2h-identifier">i</span>] <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>;</td></tr>
+      <tr><td>9</td><td></td></tr>
+      <tr><td>10</td><td>    <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">size</span>; <span class="c2h-operator">++</span><span class="c2h-identifier">i</span>) {</td></tr>
+      <tr><td>11</td><td>        <span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">value</span> <span class="c2h-operator">=</span> <span class="c2h-identifier">array</span>[<span class="c2h-identifier">i</span>];</td></tr>
+      <tr><td>12</td><td>        <span class="c2h-identifier">counters</span>[<span class="c2h-identifier">value</span> <span class="c2h-operator">-</span> <span class="c2h-identifier">min_value</span>]<span class="c2h-operator">++</span>;</td></tr>
+      <tr><td>13</td><td>    }</td></tr>
+      <tr><td>14</td><td></td></tr>
+      <tr><td>15</td><td>    <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>, <span class="c2h-identifier">w</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">counter_count</span>; <span class="c2h-operator">++</span><span class="c2h-identifier">i</span>)</td></tr>
+      <tr><td>16</td><td>        <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">j</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">j</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">counters</span>[<span class="c2h-identifier">i</span>]; <span class="c2h-operator">++</span><span class="c2h-identifier">j</span>)</td></tr>
+      <tr><td>17</td><td>            <span class="c2h-identifier">array</span>[<span class="c2h-identifier">w</span><span class="c2h-operator">++</span>] <span class="c2h-operator">=</span> <span class="c2h-identifier">i</span>;</td></tr>
+      <tr><td>18</td><td>}</td></tr>
+    </table>
+  </div>
+</div>
+
+                <p>
+                    Il <code>for</code> centrale itera lungo gli N elementi, poi l'ultimo <code>for</code> (assieme al <code>for</code> innestato) itera dinuovo lungo gli N elementi. Per questo le operazioni necessarie ad ordinare sono circa 2N.
+                </p>
+
+                <p>
+                    Tutti e tre gli algoritmi si comportano diversamente, tuttavia il counting sort ed il qsort sono più simili tra loro rispetto al selection sort, dato che sono due rette contro una parabola. In generale, è possibile dividere gli algoritmi in delle classi di complessità, dove una classe ha tutti gli algoritmi a complessità lineare, un'altra ha quelli a complessità quadratica, un'altra logaritmica e così via. Quesse classi di algoritmi si individuano con la notazione O(f(n)) detta "o grande", dove f è la funzione che descrive in buona approssimazione le prestazioni degli algoritmi della classe al crescere dei dati di dell'input. Ad esempio per il selection sort avremo O(n^2) e per il counting sort O(n) (oppure O(2n) se vogliamo essere più precisi), e si dice che il selection sort è un "O grande di n^2" ed il counting sort è un "O grande di n".
+                </p>
+
+                <p>
+                    Queste classi sono dette complessità computazionale di un algoritmo, perchè descrivono quanto è "complicato" calcolare (computare) il risultato dato l'ingresso.
+                </p>
+
+                <h2 id="riferimenti">Riferimenti</h2>
+                <ul>
+                    <li>
+                        <a target="_blank" href="https://linux.die.net/man/3/qsort">https://linux.die.net/man/3/qsort</a>
+                    </li>
+                </ul>
+            </article>
+        </main>
+    </body>
+</html>
