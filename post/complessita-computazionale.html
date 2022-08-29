@@ -2,7 +2,7 @@
     <head>
         <meta charset="utf-8" />
         <title>
-            Complessità computazionale - v0
+            Complessità computazionale - v0.1
         </title>
         <link rel="stylesheet" href="style.css" media="screen" />
         <style>
@@ -157,7 +157,7 @@
       <tr><td>52</td><td></td></tr>
       <tr><td>53</td><td>    <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>, <span class="c2h-identifier">w</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">counter_count</span>; <span class="c2h-operator">++</span><span class="c2h-identifier">i</span>)</td></tr>
       <tr><td>54</td><td>        <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">j</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">j</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">counters</span>[<span class="c2h-identifier">i</span>]; <span class="c2h-operator">++</span><span class="c2h-identifier">j</span>)</td></tr>
-      <tr><td>55</td><td>            <span class="c2h-identifier">array</span>[<span class="c2h-identifier">w</span><span class="c2h-operator">++</span>] <span class="c2h-operator">=</span> <span class="c2h-identifier">i</span>;</td></tr>
+      <tr><td>55</td><td>            <span class="c2h-identifier">array</span>[<span class="c2h-identifier">w</span><span class="c2h-operator">++</span>] <span class="c2h-operator">=</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">+</span> <span class="c2h-identifier">min_value</span>;</td></tr>
       <tr><td>56</td><td>}</td></tr>
     </table>
   </div>
@@ -322,7 +322,7 @@
       <tr><td>14</td><td></td></tr>
       <tr><td>15</td><td>    <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>, <span class="c2h-identifier">w</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">i</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">counter_count</span>; <span class="c2h-operator">++</span><span class="c2h-identifier">i</span>)</td></tr>
       <tr><td>16</td><td>        <span class="c2h-kword c2h-kword-for">for</span> (<span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier">j</span> <span class="c2h-operator">=</span> <span class="c2h-val-int">0</span>; <span class="c2h-identifier">j</span> <span class="c2h-operator">&lt;</span> <span class="c2h-identifier">counters</span>[<span class="c2h-identifier">i</span>]; <span class="c2h-operator">++</span><span class="c2h-identifier">j</span>)</td></tr>
-      <tr><td>17</td><td>            <span class="c2h-identifier">array</span>[<span class="c2h-identifier">w</span><span class="c2h-operator">++</span>] <span class="c2h-operator">=</span> <span class="c2h-identifier">i</span>;</td></tr>
+      <tr><td>17</td><td>            <span class="c2h-identifier">array</span>[<span class="c2h-identifier">w</span><span class="c2h-operator">++</span>] <span class="c2h-operator">=</span> <span class="c2h-identifier">i</span> <span class="c2h-operator">+</span> <span class="c2h-identifier">min_value</span>;</td></tr>
       <tr><td>18</td><td>}</td></tr>
     </table>
   </div>
@@ -333,11 +333,24 @@
                 </p>
 
                 <p>
-                    Tutti e tre gli algoritmi si comportano diversamente, tuttavia il counting sort ed il qsort sono più simili tra loro rispetto al selection sort, dato che sono due rette contro una parabola. In generale, è possibile dividere gli algoritmi in delle classi di complessità, dove una classe ha tutti gli algoritmi a complessità lineare, un'altra ha quelli a complessità quadratica, un'altra logaritmica e così via. Quesse classi di algoritmi si individuano con la notazione O(f(n)) detta "o grande", dove f è la funzione che descrive in buona approssimazione le prestazioni degli algoritmi della classe al crescere dei dati di dell'input. Ad esempio per il selection sort avremo O(n^2) e per il counting sort O(n) (oppure O(2n) se vogliamo essere più precisi), e si dice che il selection sort è un "O grande di n^2" ed il counting sort è un "O grande di n".
+                    Tutti e tre gli algoritmi si comportano diversamente, tuttavia il counting sort ed il qsort sono più simili tra loro rispetto al selection sort, dato che sono due rette contro una parabola. In generale, è possibile dividere gli algoritmi in delle classi di complessità, dove una classe ha tutti gli algoritmi a complessità lineare, un'altra ha quelli a complessità quadratica, un'altra logaritmica e così via. Queste classi di algoritmi si individuano con la notazione O(f(n)) detta "o grande", dove f è la funzione che descrive in buona approssimazione le prestazioni degli algoritmi della classe al crescere dei dati di dell'input. Ad esempio per il selection sort avremo O(n^2) e per il counting sort O(n) (oppure O(2n) se vogliamo essere più precisi), e si dice che il selection sort è un "O grande di n^2" ed il counting sort è un "O grande di n".
                 </p>
 
                 <p>
                     Queste classi sono dette complessità computazionale di un algoritmo, perchè descrivono quanto è "complicato" calcolare (computare) il risultato dato l'ingresso.
+                </p>
+
+                <p>
+                    Qualcuno potrebbe chiedersi, ma se il counting sort è meglio del <code>qsort</code>, perchè la libreria standard del C non usa quello? Il motivo è che il counting sort utilizza molta memoria dato che deve usare un numero di contatori pari al numero di possibili valori assumibili dagli elementi dell'array. In questo caso il problema era stato attenuato assumendo che i possibili valori potessero solo essere nell'intervallo [0, 30] (se non ponessimo quest'ipotesi dovremmo usare 4 miliardi di contatori). Per questo motivo <code>qsort</code> è più conveniente: non ha problemi di memoria e si comporta approssimativamente come il counting sort.
+                </p>
+
+                <p class="nota">
+                    Il software usato per il benchmark è reperibile <a target="_blank" href="https://github.com/cozis/sorting_benchmarks">qui</a>.
+                </p>
+
+                <h2>Fraintendimenti</h2>
+                <p>
+                    Un fraintendimento legato all'inesperienza è quello di usare la complessità computazionale per determinare fra più algoritmi qual è il migliore, in senso assoluto. La verità però è che questa metrica è molto sintetica ed ha solo senso nel contesto di grandi carichi di dati. Se due algoritmi operano su quantità minime di dati, allora la complessità computazionale non ci dice nulla riguardo qual è il più veloce. Anzi, è probabile che quello con complessità computazionale migliore risulti più lento per meno dati dato che ha sacrificato un minimo tempo d'esecuzione basso in favore di una buona scalabilità. Questo per non parlare dell'aspetto dell'utilizzo della memoria, infatti è facile ottenere buone prestazioni in teoria sacrificando memoria. Ad esempio il counting sort ha ottime prestazioni ma di fatto è inutilizzabile al di fuori di specifiche circostanze.
                 </p>
 
                 <h2 id="riferimenti">Riferimenti</h2>
