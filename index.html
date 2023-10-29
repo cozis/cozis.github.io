@@ -1,35 +1,82 @@
 <html>
-	<head>
-		<title>
-			Il blog di Cozis
-		</title>
-		<link rel="stylesheet" media="screen" href="style.css" />
-	</head>
-	<body>
-		<h1>Il blog di Cozis</h1>
-		<nav>
-			<a href="index.html">Home</a>
-			|
-			<a href="chi-sono.html">Chi sono?</a>
-			|
-			<a href="come-contattarmi.html">Come contattarmi?</a>
-		</nav>
-		<p>
-			Hei, ciao! Questo è il blog di Cozis ed io.. sono Cozis! In questo blog tratto programmazione ed informatica, per lo più in linguaggio C. È il luogo dove comunico le lezioni che ho imparato lungo il mio percorso di ricerca personale.
-		</p>
-		<p>
-			Ho deciso di creare questo blog perchè ho un grande desiderio di vedere software di qualità. Non perchè il software di qualità è utile o altro, ma è un piacere fine a se stesso. Trovo un software ben progettato sublime quanto un'opera di Michelangelo. Per questo motivo passo la maggior parte del mio tempo ad imparare come i computer funzionano ed allenare la mia mente a scrivere software sempre migliore. Recentemente ho realizzato che esiste un altro modo per creare buon software oltre a quello di scriverlo direttamente, cioè insegnare ciò che so agli altri!
-		</p>
+    <head>
+        <title>Ciao :^)</title>
+    </head>
+    <body>
 
-		<h2>Guide</h2>
-		<ul>
-			<li><a href="post/scriviamo-un-server-tcp.html">Scriviamo un server TCP</a></li>
-		</ul>
-		<h2>Ausiliari</h2>
-		<ul>
-			<li><a href="post/gli-assert.html">Gli assert</a></li>
-			<li><a href="post/ordinamento-dei-byte.html">Big e little endian: Ordinamento dei byte</a></li>
-			<li><a href="post/complessita-computazionale.html">Complessità computazionale</a></li>
-		</ul>
-	</body>
+        <h1>Cozis's blog!</h1>
+        <p>
+            Hello, and welcome to my little corner of the internet!
+        </p>
+        <p>
+            My name is Francesco Cozzuto and I'm a computer programmer based in Naples (Italy). I really like building stuff, especially the kind that runs on computers! The social I'm most active on is <a href="https://github.com/cozis">GitHub</a>. I also have a <a href="https://www.youtube.com/@cozis947">YouTube</a> channel, but don't post much on it. People can reach me at francesco.cozzuto [at] gmail.com
+        </p>
+
+        <h2>Things I think about</h2>
+        <ul>
+            <li>Programming is art and getting better at it means getting to know yourself better</li>
+            <li><a href="https://en.wikipedia.org/wiki/Reinventing_the_wheel">Reinventing the wheel</a> is not only cool but essential for an aspiring programmer</li>
+            <li>An online version of Pokemon Emerald would be soo sick</li>
+            <li>Sofware with many dependencies sucks. You probably need far less than you think, and if you reinvented the wheel enough in the past you know that some of your use-cases might be basic enough you can get away with writing the code yourself</li>
+        </ul>
+
+        <h2>Cool things about me</h2>
+        <ul>
+            <li>Minimal web pages make me happy</li>
+            <li>I like to <a href="draw.html">draw</a> and studied art before enrolling at uni for Computer Engineering</li>
+            <li>I drink about 6 cups of coffee a day (I guess it being cool is up for debate)</li>
+            <li>You may not beleave this, but I have the best <a href="leo.html">cat</a> in the world</li>
+        </ul>
+
+        <h2>Software I made that I'm proud about</h2>
+        <table border=1>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><a href="https://github.com/cozis/microtcp">MicroTCP</a></td>
+                <td>Very minimal implementation of a TCP/IP network stack. You can run it on Windows and Linux alongside the kernel's network stack using a TAP device (which you need to install on Windows). It should be possible to run it on bare metal but havent tried yet.</td>
+            </tr>
+            <tr>
+                <td><a href="https://github.com/cozis/xHTTP">xHTTP</a></td>
+                <td>Tiny HTTP/1.1 server library for Linux. I'm not convinced about the API though and started focusing my efforst on another HTTP implementation called <a href="https://github.com/cozis/chttp">chttp</a>)</td>
+            </tr>
+            <tr>
+                <td><a href="https://github.com/cozis/Noja">Noja</a></td>
+                <td>This project has a special place in my heart. It's the interpreter for a language called Noja I came up with. Being able to code in my own language was a dream come true!</td>
+            </tr>
+            <tr>
+                <td><a href="https://github.com/cozis/tinytemplate">TinyTemplate</a></td>
+                <td>Lightweight Templating engine. The intended use-case is to generate dynamic web pages.</td>
+            </tr>
+            <tr>
+                <td><a href="https://github.com/cozis/c2html">c2html</a></td>
+                <td>Tool to add HTML syntax highlighting tags to snippets of C code. In case you loove long variable names, it can elaborate text at more than 1GB/s!</td>
+            </tr>
+        </table>
+
+        <h2>Links you should check out</h2>
+        <ul>
+            <li><a href="https://bellard.org/">bellard.org</a></li>
+            <li><a href="http://invece.org/">invece.org</a></li>
+        </ul>
+
+        <h2>My friends on the internet</h2>
+        <ul>
+            <li><a href="https://0xharu.github.io/">Haru</a></li>
+        </ul>
+        (Hopefully the list will grow bigger :|)
+
+        <h2>Post archive</h2>
+        <p>These are some posts I wrote in italian some time ago. I consider them incomplete and work on them on and off when I feel like it</p>
+        <ul>
+            <li><a href="post/scriviamo-un-server-tcp.html">Scriviamo un server TCP</a></li>
+            <li><a href="post/gli-assert.html">Gli assert</a></li>
+            <li><a href="post/ordinamento-dei-byte.html">Big e little endian</a></li>
+            <li><a href="post/complessita-computazionale.html">Complessità computazionale</a></li>
+        </ul>
+    </body>
 </html>
