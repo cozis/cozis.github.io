@@ -1,0 +1,208 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>
+            Gli assert - v 0.2
+        </title>
+        <link rel="stylesheet" href="style.css" media="screen" />
+    </head>
+    <body>
+        <main>
+            <a href="../index.html">&lt;&lt; Home</a>
+            <article>
+                <h1 id="gli-assert">Gli assert</h1>
+
+                <h2 id="indice">Indice</h2>
+                <nav>
+                    <ol>
+                        <li>
+                            <a href="#gli-assert">
+                                Gli assert
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#indice">
+                                Indice
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#introduzione">
+                                Introduzione
+                            </a>
+                            <ol>
+                                <li>
+                                    <a href="#cos-e">
+                                        Cos'è?
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#a-cosa-serve">
+                                        A cosa serve?
+                                    </a>
+                                </li>
+                            </ol>
+                        </li>
+                        <li>
+                            <a href="#esempi-di-uso-scorretto">
+                                Esempi di uso scorretto
+                            </a>
+                            <ol>
+                                <li>
+                                    <a href="#assert-come-todo">
+                                        Usare gli assert come to-do
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#assert-come-abort">
+                                        Usare gli assert come abort
+                                    </a>
+                                </li>
+                            </ol>
+                        </li>
+                    </ol>
+                </nav>
+
+                <h2 id="introduzione">Introduzione</h2>
+                <p>
+                    Gli assert, per qualche motivo, sono uno degli oggetti della programmazione che vedo fraintesi di più. Mi sono trovato più volte a spiegare e rispiegare cosa sonom, per questo motivo ho deciso di scrivere qui una spiegazione esaustiva da poter linkare nel futuro!. 
+                </p>
+
+                <p class="nota">
+                    Il contesto in cui parlerò degli assert è la programmazione C, ma sono un concetto comune anche ad altri linguaggi.
+                </p>
+
+                <h3 id="cos-e">Cos'è?</h3>
+                <p>
+                    L'assert è una <i>macro</i> definita in <code>assert.h</code> che prende come argomento un'espressione. Quando le chiamate ad <code>assert</code> vengono eseguite, se l'espressione risulta essere falsa, allora viene abortita l'esecuzione del programma. Se l'espressione risulta essere vera allora non hanno effetto ed il programma continua la sua esecuzione.
+                </p>
+                <p>
+                    Se però è definito il simbolo <code>NDEBUG</code> quando compiliamo il programma, allora il loro comportamento cambia. In tal caso tutti gli assert vengono disabilitati e non hanno effetto, indipendentemente dal risultato dell'espressione fornitagli.
+                </p>
+                <p>
+                    Potremmo immaginare che <code>assert</code> sarà implementata più o meno così:
+                </p>
+                <div class="c2h-code">
+  <div class="c2h-code-inner">
+    <table>
+      <tr><td>1</td><td><span class="c2h-directive">#ifndef</span> <span class="c2h-identifier">NDEBUG</span></td></tr>
+      <tr><td>2</td><td><span class="c2h-directive">#  define</span> <span class="c2h-identifier c2h-fdeclname">assert</span>(<span class="c2h-identifier">exp</span>) { <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-operator">!</span>(<span class="c2h-identifier">exp</span>)) <span class="c2h-identifier c2h-fcallname">abort</span>(); }</td></tr>
+      <tr><td>3</td><td><span class="c2h-directive">#else</span></td></tr>
+      <tr><td>4</td><td><span class="c2h-directive">#  define</span> <span class="c2h-identifier c2h-fdeclname">assert</span>(<span class="c2h-identifier">exp</span>) (<span class="c2h-identifier">exp</span>)</td></tr>
+      <tr><td>5</td><td><span class="c2h-directive">#endif</span></td></tr>
+    </table>
+  </div>
+</div>
+
+                
+                <h3 id="a-cosa-serve">A cosa serve?</h3>
+                <p>
+                    <b>Assert serve a comunicare ai lettori del codice sorgente che una certa condizione è sempre vera</b>. Per questo motivo, non è da intendersi come codice ma più come un commento, perchè servono a documentare e non ad implementare funzionalità. 
+
+                    Ogni assert è un messaggio ai i futuri lettori di una porzione di codice che ricorda come un fatto per necessità del programma sia sempre vero, in modo tale da permettergli di seguire meglio la logica del codice in questione.
+                </p>
+
+                <p>
+                    La cosa che però rende conveniente un assert rispetto ad un commento ordinario, è che permette di controllare quando il programma rompe le regole che ci siamo imposti di rispettare (anche note come <i>invarianti</i>). Questo dovrebbe accadere solo in fase di sviluppo, quindi solo in tal caso gli assert dovrebbero essere abilitati. In un programma corretto, le espressioni fornite agli assert sono sempre vere.
+                </p>
+
+                <p>
+                    Quindi, nel codice aggiungiamo gli assert per documentare alcuni fatti della logica del programma e, per assicurarci che in fase di sviluppo queste assunzioni di base sono rispettate, diciamo agli assert di abortire il programma nel caso non lo siano.
+
+                    Quando non siamo più in fase di sviluppo assumiamo che le invarianti imposte dagli assert siano sempre vere, rendendo il controllo degli assert superfluo perchè le loro espressioni saranno sempre verificate. A questo punto li disabilitiamo definendo <code>NDEBUG</code>.
+                </p>
+
+                <h2 id="esempi-di-uso-scorretto">
+                    Esempi di uso scorretto
+                </h2>
+
+                <h3 id="assert-come-todo">Usare gli assert come to-do</h3>
+                <p>
+                    L'uso scorretto più comune che vedo è quello di usare l'assert nei casi in cui nella logica del programma potrebbe avvenire un errore, ma il programmatore non vuole scrivere il codice che lo gestisce. In tal caso il programmatore ignorante mette un assert sulla condizione di errore. Un esempio di questo caso potrebbe essere l'apertura di un file:
+                </p>
+
+                <div class="c2h-code">
+  <div class="c2h-code-inner">
+    <table>
+      <tr><td>1</td><td><span class="c2h-directive">#include</span> <span class="c2h-val-str">&lt;stdio.h&gt;</span></td></tr>
+      <tr><td>2</td><td></td></tr>
+      <tr><td>3</td><td><span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier c2h-fdeclname">main</span>()</td></tr>
+      <tr><td>4</td><td>{</td></tr>
+      <tr><td>5</td><td>    <span class="c2h-identifier">FILE</span> <span class="c2h-operator">*</span><span class="c2h-identifier">fp</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">fopen</span>(<span class="c2h-val-str">"file.txt"</span>, <span class="c2h-val-str">"r"</span>);</td></tr>
+      <tr><td>6</td><td>    <span class="c2h-identifier c2h-fcallname">assert</span>(<span class="c2h-identifier">fp</span> <span class="c2h-operator">!=</span> <span class="c2h-identifier">NULL</span>);</td></tr>
+      <tr><td>7</td><td></td></tr>
+      <tr><td>8</td><td>    <span class="c2h-comment">// .. fai cose con il file ..</span></td></tr>
+      <tr><td>9</td><td></td></tr>
+      <tr><td>10</td><td>    <span class="c2h-identifier c2h-fcallname">fclose</span>(<span class="c2h-identifier">fp</span>);</td></tr>
+      <tr><td>11</td><td>    <span class="c2h-kword c2h-kword-return">return</span> <span class="c2h-val-int">0</span>;</td></tr>
+      <tr><td>12</td><td>}</td></tr>
+    </table>
+  </div>
+</div>
+
+
+                <p>
+                    In questo caso l'uso è scorretto perchè è possibile che il file non esista, anche se il programma è scritto correttamente e senza bug. L'esistenza del file non è qualcosa sul quale il programma ha il controllo, quindi è realistico il caso in cui questo non esista ed <code>fopen</code> ritorni <code>NULL</code>. Quando poi avremo concluso lo sviluppo del nostro programma e faremo una compilazione non di debug definendo <code>NDEBUG</code>, questo controllo diventerà una nop (no operation) ed il nostro programma resterà scoperto a questa condizione di errore.
+                </p>
+
+                <p class="nota">
+                    È da notare che decidere di abortire quando la <code>fopen</code> fallisce è una decisione perfettamente ragionevole, il problema sta nel farlo usando una chiamata ad <code>assert</code>.
+                    <br />
+                    <br />
+                    È naturale "impigrirsi" e non voler gestire subito una condizione di errore. Del resto il codice di un programma può essere rappresentato come un albero, dove la separazione di rami corrisponde ad un if-else. Gestire tutti gli errori subito corrisponde a percorrere questo albero depth-first, quando magari una persona è più portata ad un approccio breadth-first (cioè trattare prima i casi generali e poi gestire i casi nel dettaglio). Il problema, di nuovo, è l'uso degli <code>assert</code> per fare questa cosa. 
+                </p>
+
+                <h3 id="assert-come-abort">Usare gli assert come abort</h3>
+                <p>
+                    Il secondo caso di uso scorretto è quello in cui una condizione di errore si verifica, ma il programma non può recuperare da questa crisi. Per questo motivo l'unica opzione è abortire l'esecuzione. Un esempio di questo caso è l'allocazione della memoria. I programmi che scriviamo comunemente tendono a non essere progettati a recuperare dal fallimento di un'allocazione, quindi se, ad esempio, <code>malloc</code> ci restituisce un bel <code>NULL</code>, non possiamo far altro che abortire. In questo caso potrebbe sembrare una buona idea usare <code>assert</code> dato che manda il programma in abort quando si verifica la falsità di un'affermazione:
+                </p>
+
+                <div class="c2h-code">
+  <div class="c2h-code-inner">
+    <table>
+      <tr><td>1</td><td><span class="c2h-directive">#include</span> <span class="c2h-val-str">&lt;stdlib.h&gt;</span></td></tr>
+      <tr><td>2</td><td></td></tr>
+      <tr><td>3</td><td><span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier c2h-fdeclname">main</span>()</td></tr>
+      <tr><td>4</td><td>{</td></tr>
+      <tr><td>5</td><td>    <span class="c2h-kword c2h-kword-void">void</span> <span class="c2h-operator">*</span><span class="c2h-identifier">p</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">malloc</span>(<span class="c2h-val-int">1024</span>);</td></tr>
+      <tr><td>6</td><td>    <span class="c2h-identifier c2h-fcallname">assert</span>(<span class="c2h-identifier">p</span> <span class="c2h-operator">!=</span> <span class="c2h-identifier">NULL</span>);</td></tr>
+      <tr><td>7</td><td></td></tr>
+      <tr><td>8</td><td>    <span class="c2h-comment">// .. //</span></td></tr>
+      <tr><td>9</td><td></td></tr>
+      <tr><td>10</td><td>    <span class="c2h-identifier c2h-fcallname">free</span>(<span class="c2h-identifier">p</span>);</td></tr>
+      <tr><td>11</td><td>    <span class="c2h-kword c2h-kword-return">return</span> <span class="c2h-val-int">0</span>; </td></tr>
+      <tr><td>12</td><td>}</td></tr>
+    </table>
+  </div>
+</div>
+
+
+                <p>
+                    ma questo è scorretto, perchè non avere memoria è una condizione perfettamente plausibile anche per un programma corretto, quindi quando andremo a fare una compilazione non di debug definendo <code>NDEBUG</code>, questi controlli svaniranno, lasciano il programma scoperto a queste condizioni di errore.
+                </p>
+                <p>
+                    In questo caso la cosa corretta da fare era semplicemente usare <code>abort</code>, così:
+                </p>
+<div class="c2h-code">
+  <div class="c2h-code-inner">
+    <table>
+      <tr><td>1</td><td><span class="c2h-directive">#include</span> <span class="c2h-val-str">&lt;stdlib.h&gt;</span></td></tr>
+      <tr><td>2</td><td></td></tr>
+      <tr><td>3</td><td><span class="c2h-kword c2h-kword-int">int</span> <span class="c2h-identifier c2h-fdeclname">main</span>()</td></tr>
+      <tr><td>4</td><td>{</td></tr>
+      <tr><td>5</td><td>    <span class="c2h-kword c2h-kword-void">void</span> <span class="c2h-operator">*</span><span class="c2h-identifier">p</span> <span class="c2h-operator">=</span> <span class="c2h-identifier c2h-fcallname">malloc</span>(<span class="c2h-val-int">1024</span>);</td></tr>
+      <tr><td>6</td><td>    <span class="c2h-kword c2h-kword-if">if</span>(<span class="c2h-identifier">p</span> <span class="c2h-operator">==</span> <span class="c2h-identifier">NULL</span>)</td></tr>
+      <tr><td>7</td><td>        <span class="c2h-identifier c2h-fcallname">abort</span>();</td></tr>
+      <tr><td>8</td><td></td></tr>
+      <tr><td>9</td><td>    <span class="c2h-comment">// .. //</span></td></tr>
+      <tr><td>10</td><td></td></tr>
+      <tr><td>11</td><td>    <span class="c2h-identifier c2h-fcallname">free</span>(<span class="c2h-identifier">p</span>);</td></tr>
+      <tr><td>12</td><td>    <span class="c2h-kword c2h-kword-return">return</span> <span class="c2h-val-int">0</span>; </td></tr>
+      <tr><td>13</td><td>}</td></tr>
+    </table>
+  </div>
+</div>
+
+            </article>
+        </main>
+    </body>
+</html>
